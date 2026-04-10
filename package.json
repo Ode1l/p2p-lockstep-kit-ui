@@ -7,27 +7,29 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/ui/index.d.ts",
-      "import": "./dist/ui/index.js"
-    }
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./style.css": "./dist/style.css"
   },
-  "types": "./dist/ui/index.d.ts",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "dev": "tsup --watch",
-    "build": "tsup",
+    "dev": "vite",
+    "build": "vite build && tsc -p tsconfig.build.json && node ./scripts/postbuild.mjs",
+    "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "format": "prettier -w ."
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.1.13",
     "@types/qrcode": "^1.5.5",
     "prettier": "^3.3.1",
-    "tsup": "^8.3.0",
-    "typescript": "^5.3.3",
-    "p2p-lockstep-kit-network": "0.1.0",
-    "p2p-lockstep-kit-session": "0.1.0"
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.8",
+    "vitest": "^4.1.2"
   },
   "dependencies": {
-    "qrcode": "^1.5.4",
-    "vitest": "^4.1.2"
+    "qrcode": "^1.5.4"
   }
 }
