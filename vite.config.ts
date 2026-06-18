@@ -10,7 +10,7 @@ export default defineConfig({
         new URL("../p2p-lockstep-kit-network/network/index.ts", import.meta.url),
       ),
       "p2p-lockstep-kit-session": fileURLToPath(
-        new URL("../p2p-lockstep-kit-session/src/session/index.ts", import.meta.url),
+        new URL("../p2p-lockstep-kit-session/session/index.ts", import.meta.url),
       ),
     },
   },

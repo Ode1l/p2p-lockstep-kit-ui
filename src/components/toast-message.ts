@@ -1,4 +1,5 @@
 import type { ToastState } from "../types";
+import { setText } from "../utils/dom";
 
 const defaultState: ToastState = {
   open: false,
@@ -29,7 +30,7 @@ export class P2PLockstepToastMessageElement extends HTMLElement {
   }
 
   render() {
-    const { open, message } = this.#state;
+    const { open } = this.#state;
     this.className = "pointer-events-none fixed inset-x-4 bottom-4 z-50 flex justify-center sm:justify-end";
     this.innerHTML = `
       <div
@@ -37,8 +38,9 @@ export class P2PLockstepToastMessageElement extends HTMLElement {
           open ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
         }"
       >
-        ${message}
+        <span data-message></span>
       </div>
     `;
+    setText(this, "[data-message]", this.#state.message);
   }
 }

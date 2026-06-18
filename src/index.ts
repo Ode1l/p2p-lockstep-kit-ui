@@ -8,6 +8,7 @@ import { P2PLockstepBoardHostElement } from "./game/board-host";
 import { P2PLockstepLobbyPageElement } from "./pages/lobby-page";
 import { P2PLockstepGamePageElement } from "./pages/game-page";
 import { P2PLockstepAppElement } from "./app-shell";
+export { DEFAULT_SIGNAL_URL } from "./config";
 
 const define = (tag: string, ctor: CustomElementConstructor) => {
   if (!customElements.get(tag)) {

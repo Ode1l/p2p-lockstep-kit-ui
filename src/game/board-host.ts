@@ -1,6 +1,7 @@
 export class P2PLockstepBoardHostElement extends HTMLElement {
   #ready = false;
   #observer: MutationObserver | null = null;
+  #mount: HTMLDivElement | null = null;
 
   connectedCallback() {
     if (this.#ready) {
@@ -29,6 +30,13 @@ export class P2PLockstepBoardHostElement extends HTMLElement {
     this.#observer = null;
   }
 
+  getMount() {
+    if (!this.#ready) {
+      this.connectedCallback();
+    }
+    return this.#mount;
+  }
+
   render() {
     this.className = "block h-full";
     this.innerHTML = `
@@ -43,9 +51,6 @@ export class P2PLockstepBoardHostElement extends HTMLElement {
         </div>
       </section>
     `;
-  }
-
-  getMount() {
-    return this.querySelector<HTMLDivElement>("[data-board-mount]");
+    this.#mount = this.querySelector<HTMLDivElement>("[data-board-mount]");
   }
 }

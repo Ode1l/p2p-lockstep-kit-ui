@@ -9,11 +9,10 @@ import type {
   SessionStateView,
   ToastState,
 } from "./types";
+import { DEFAULT_SIGNAL_URL } from "./config";
 import { readShareLocation } from "./utils/share";
 import type { P2PLockstepLobbyPageElement } from "./pages/lobby-page";
 import type { P2PLockstepGamePageElement } from "./pages/game-page";
-import type { P2PLockstepConfirmDialogElement } from "./components/confirm-dialog";
-import type { P2PLockstepToastMessageElement } from "./components/toast-message";
 
 const defaultState = (attrs?: {
   gameTitle?: string;
@@ -23,7 +22,7 @@ const defaultState = (attrs?: {
   screen: "lobby",
   gameTitle: attrs?.gameTitle || "P2P Lockstep",
   sessionId: attrs?.sessionId || "default-session",
-  signalUrl: attrs?.signalUrl || "",
+  signalUrl: attrs?.signalUrl || DEFAULT_SIGNAL_URL,
   targetId: "",
   peerId: "",
   remotePeerId: "",
@@ -286,6 +285,7 @@ export class P2PLockstepAppElement extends HTMLElement {
 
   async #bootstrapFromLocation() {
     const shared = readShareLocation();
+    const hasExplicitSignalUrl = this.hasAttribute("signal-url");
     if (shared.signalUrl) {
       this.#patchState({ signalUrl: shared.signalUrl });
     }
@@ -293,7 +293,7 @@ export class P2PLockstepAppElement extends HTMLElement {
       this.#patchState({ targetId: shared.peerId });
     }
 
-    if (!this.#state.signalUrl) {
+    if (!this.#state.signalUrl || (!hasExplicitSignalUrl && !shared.signalUrl && !shared.peerId)) {
       return;
     }
 
@@ -358,6 +358,7 @@ export class P2PLockstepAppElement extends HTMLElement {
 
     try {
       await this.#network.connect(trimmed);
+      this.#patchState({ connecting: false });
       if (!quiet) {
         this.#showToast("Connection request sent.");
       }
@@ -435,16 +436,17 @@ export class P2PLockstepAppElement extends HTMLElement {
   }
 
   #applyConnectionState(connected: boolean) {
+    const wasOnGameScreen = this.#state.screen === "game";
     const peerState = this.#network.peerState();
     const remotePeerId = this.#network.getRemotePeerId() ?? this.#state.remotePeerId;
     const peerId = this.#network.getLocalPeerId() ?? this.#state.peerId;
 
     const connectionState =
       peerState === "connected"
-        ? "connected"
+          ? "connected"
         : peerState === "requesting"
           ? "connecting"
-          : this.#state.screen === "game"
+          : wasOnGameScreen
             ? "offline"
             : peerId
               ? "registered"
@@ -456,12 +458,12 @@ export class P2PLockstepAppElement extends HTMLElement {
       connected,
       connecting: peerState === "requesting",
       connectionState,
-      screen: connected || this.#state.screen === "game" ? "game" : "lobby",
+      screen: connected || wasOnGameScreen ? "game" : "lobby",
     });
 
     if (connected) {
       this.#showToast("Peer connected. Game page is live.");
-    } else if (this.#state.screen === "game" && peerId) {
+    } else if (wasOnGameScreen && peerId) {
       this.#showToast("Peer disconnected. Waiting for reconnect.");
     }
   }

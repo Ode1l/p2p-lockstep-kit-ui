@@ -1,5 +1,6 @@
 import QRCode from "qrcode";
 import type { SharePanelState } from "../types";
+import { setText } from "../utils/dom";
 import { emit } from "../utils/events";
 
 const defaultState: SharePanelState = {
@@ -37,7 +38,7 @@ export class P2PLockstepSharePanelElement extends HTMLElement {
   }
 
   async render() {
-    const { peerId, shareUrl } = this.#state;
+    const { shareUrl } = this.#state;
     this.className = "block";
     this.innerHTML = `
       <section class="flex h-full flex-col gap-4 rounded-[2rem] border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
@@ -61,14 +62,12 @@ export class P2PLockstepSharePanelElement extends HTMLElement {
             <div class="space-y-3">
               <div>
                 <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Peer ID</p>
-                <p class="mt-1 break-all font-mono text-sm text-slate-100">${peerId || "Not registered yet"}</p>
+                <p data-peer-id class="mt-1 break-all font-mono text-sm text-slate-100"></p>
               </div>
 
               <div>
                 <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Share URL</p>
-                <p class="mt-1 break-all font-mono text-sm text-slate-300">
-                  ${shareUrl || "Register first to generate a share link."}
-                </p>
+                <p data-share-url class="mt-1 break-all font-mono text-sm text-slate-300"></p>
               </div>
             </div>
 
@@ -84,6 +83,9 @@ export class P2PLockstepSharePanelElement extends HTMLElement {
         </div>
       </section>
     `;
+
+    setText(this, "[data-peer-id]", this.#state.peerId || "Not registered yet");
+    setText(this, "[data-share-url]", shareUrl || "Register first to generate a share link.");
 
     const canvas = this.querySelector("canvas");
     if (!canvas) {
