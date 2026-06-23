@@ -56,7 +56,7 @@ export class P2PLockstepActionBarElement extends HTMLElement {
       : canReady
         ? "Ready"
         : connected && readySelf
-          ? "Waiting for peer"
+          ? "Waiting for peer to start"
           : connected
             ? "Waiting"
             : "Waiting for connection";

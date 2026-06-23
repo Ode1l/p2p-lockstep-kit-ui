@@ -37,6 +37,36 @@ const shortId = (value: string) => {
   return `${value.slice(0, 7)}...${value.slice(-4)}`;
 };
 
+const readinessLabel = (
+  player: "Me" | "Peer",
+  state: StatusPanelState["localState"],
+) => {
+  if (state === "ready") {
+    return `${player} ready`;
+  }
+  if (state === "could_start") {
+    return player === "Me" ? "You can start" : "Peer can start";
+  }
+  return `${player} idle`;
+};
+
+const stateLabel = (
+  player: "Local" | "Remote",
+  state: StatusPanelState["localState"],
+) => {
+  const subject = player === "Local" ? "You" : "Peer";
+  if (state === "idle") {
+    return `${subject} idle`;
+  }
+  if (state === "ready") {
+    return `${subject} ready`;
+  }
+  if (state === "could_start") {
+    return `${subject} can start`;
+  }
+  return `${subject} ${state.replaceAll("_", " ")}`;
+};
+
 export class P2PLockstepStatusPanelElement extends HTMLElement {
   #state: StatusPanelState = defaultState;
   #ready = false;
@@ -66,13 +96,15 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
       ? "bg-[var(--lock-teal)]"
       : "bg-[var(--lock-dim)]";
     const connectionLabel = connected ? "Live" : "Standby";
-    const readySummary = `${this.#state.readySelf ? "Me ready" : "Me idle"} / ${
-      this.#state.readyPeer ? "Peer ready" : "Peer idle"
-    }`;
+    const selfReadyLabel = readinessLabel("Me", this.#state.localState);
+    const peerReadyLabel = readinessLabel("Peer", this.#state.remoteState);
+    const localStateLabel = stateLabel("Local", this.#state.localState);
+    const remoteStateLabel = stateLabel("Remote", this.#state.remoteState);
+    const readySummary = `${selfReadyLabel} / ${peerReadyLabel}`;
 
     this.className = "block";
     this.innerHTML = `
-      <section class="lock-panel rounded-[1.25rem] p-2.5 text-sm text-[var(--lock-muted)] sm:rounded-[1.5rem] sm:p-3 lg:rounded-[1.75rem] lg:p-2.5">
+      <section class="lock-panel relative rounded-[1.25rem] p-2.5 text-sm text-[var(--lock-muted)] sm:rounded-[1.5rem] sm:p-3 lg:rounded-[1.75rem] lg:p-2.5">
         <div class="flex items-center gap-2 lg:hidden">
           <div class="min-w-0 flex-1">
             <p data-mobile-title class="truncate text-sm font-semibold leading-tight text-[var(--lock-paper)]"></p>
@@ -88,14 +120,14 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
             <span data-mobile-ready></span>
           </div>
 
-          <details class="group relative shrink-0">
+          <details class="group shrink-0">
             <summary
               aria-label="Match details"
               class="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full border border-[var(--lock-border)] bg-[rgba(255,255,252,0.7)] text-base font-semibold leading-none text-[var(--lock-muted)] transition hover:border-[var(--lock-border-strong)] hover:bg-white [&::-webkit-details-marker]:hidden"
             >
               ...
             </summary>
-            <div class="absolute right-0 z-30 mt-2 w-[min(22rem,calc(100vw-1.5rem))] rounded-[1.2rem] border border-[var(--lock-border-strong)] bg-[var(--lock-surface-strong)] p-3.5 shadow-xl shadow-black/10 backdrop-blur-xl">
+            <div class="absolute inset-x-0 top-full z-50 mt-2 max-h-[calc(100svh-6rem)] overflow-auto rounded-[1.35rem] border border-[var(--lock-border-strong)] bg-[rgba(255,255,252,0.96)] p-3.5 shadow-2xl shadow-black/15 backdrop-blur-xl lg:inset-auto lg:right-0 lg:w-[min(22rem,calc(100vw-1.5rem))]">
               <div class="grid grid-cols-2 gap-2">
                 <article class="rounded-[1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.54)] p-3">
                   <p class="text-[0.6rem] uppercase tracking-[0.18em] text-[var(--lock-dim)]">Connection</p>
@@ -208,26 +240,10 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
     setText(this, "[data-detail-session]", this.#state.sessionId);
     setText(this, "[data-detail-peer]", shortId(this.#state.peerId));
     setText(this, "[data-detail-remote]", shortId(this.#state.remotePeerId));
-    setText(
-      this,
-      "[data-detail-ready-self]",
-      `Me ${this.#state.readySelf ? "ready" : "idle"}`,
-    );
-    setText(
-      this,
-      "[data-detail-ready-peer]",
-      `Peer ${this.#state.readyPeer ? "ready" : "idle"}`,
-    );
-    setText(
-      this,
-      "[data-detail-local-state]",
-      `Local ${this.#state.localState}`,
-    );
-    setText(
-      this,
-      "[data-detail-remote-state]",
-      `Remote ${this.#state.remoteState}`,
-    );
+    setText(this, "[data-detail-ready-self]", selfReadyLabel);
+    setText(this, "[data-detail-ready-peer]", peerReadyLabel);
+    setText(this, "[data-detail-local-state]", localStateLabel);
+    setText(this, "[data-detail-remote-state]", remoteStateLabel);
     setText(this, "[data-title]", this.#state.gameTitle);
     setText(this, "[data-connection-state]", this.#state.connectionState);
     setText(this, "[data-current-turn]", `#${this.#state.currentTurn}`);
@@ -243,17 +259,9 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
       "[data-remote-peer-id]",
       this.#state.remotePeerId || "Remote peer not connected yet.",
     );
-    setText(
-      this,
-      "[data-ready-self]",
-      `Me ${this.#state.readySelf ? "ready" : "idle"}`,
-    );
-    setText(
-      this,
-      "[data-ready-peer]",
-      `Peer ${this.#state.readyPeer ? "ready" : "idle"}`,
-    );
-    setText(this, "[data-local-state]", `Local ${this.#state.localState}`);
-    setText(this, "[data-remote-state]", `Remote ${this.#state.remoteState}`);
+    setText(this, "[data-ready-self]", selfReadyLabel);
+    setText(this, "[data-ready-peer]", peerReadyLabel);
+    setText(this, "[data-local-state]", localStateLabel);
+    setText(this, "[data-remote-state]", remoteStateLabel);
   }
 }

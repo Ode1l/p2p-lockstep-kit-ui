@@ -60,7 +60,6 @@ const defaultToast: ToastState = {
   message: "",
 };
 
-const readyStates: SessionStateView[] = ["ready", "could_start"];
 const activeStates: SessionStateView[] = [
   "turn",
   "remote_turn",
@@ -440,8 +439,8 @@ export class P2PLockstepAppElement extends HTMLElement {
 
   #applySnapshot(snapshot: SessionSnapshot) {
     const snapshotConnected = snapshot.connected || this.#state.connected;
-    const readySelf = readyStates.includes(snapshot.localState);
-    const readyPeer = readyStates.includes(snapshot.remoteState);
+    const readySelf = snapshot.localState === "ready";
+    const readyPeer = snapshot.remoteState === "ready";
     const canReady = snapshotConnected && snapshot.localState === "idle";
     const canStart = snapshotConnected && snapshot.localState === "could_start";
     const canUndo =
