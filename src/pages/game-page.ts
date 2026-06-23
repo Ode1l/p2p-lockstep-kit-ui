@@ -15,6 +15,7 @@ const defaultState: GamePageState = {
   canStart: false,
   canUndo: false,
   canRestart: false,
+  started: false,
   currentTurn: 1,
   turnOwner: null,
   localState: "idle",
@@ -26,8 +27,6 @@ const defaultState: GamePageState = {
 export class P2PLockstepGamePageElement extends HTMLElement {
   #state: GamePageState = defaultState;
   #ready = false;
-  #title: HTMLElement | null = null;
-  #subtitle: HTMLElement | null = null;
   #statusPanel: (HTMLElement & { state: StatusPanelState }) | null = null;
   #actionBar: (HTMLElement & { state: ActionBarState }) | null = null;
   #boardHost: P2PLockstepBoardHostElement | null = null;
@@ -55,30 +54,23 @@ export class P2PLockstepGamePageElement extends HTMLElement {
   render() {
     this.className = "block h-full";
     this.innerHTML = `
-      <section class="grid h-full gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
-        <aside class="flex flex-col gap-4">
-          <div class="lock-panel rounded-[2rem] p-5">
-            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-[var(--lock-bronze-bright)]">
-              Match
-            </p>
-            <h2 data-title class="lock-title mt-3 text-4xl font-semibold leading-none tracking-[-0.04em] text-[var(--lock-paper)]"></h2>
-            <p data-subtitle class="mt-3 text-sm leading-6 text-[var(--lock-muted)]"></p>
-          </div>
-
+      <section class="flex h-[calc(100svh-1.5rem)] flex-col gap-2.5 overflow-visible sm:h-auto sm:min-h-[calc(100svh-3rem)] sm:gap-4 lg:grid lg:h-full lg:min-h-[32rem] lg:grid-cols-[minmax(0,1fr)_20rem] lg:grid-rows-[auto_minmax(0,1fr)] lg:gap-5">
+        <aside class="order-1 lg:order-none lg:col-start-2 lg:row-start-1">
           <p2p-lockstep-status-panel></p2p-lockstep-status-panel>
         </aside>
 
-        <div class="grid min-h-[32rem] gap-4 lg:grid-rows-[minmax(0,1fr)_auto]">
+        <div class="order-2 min-h-0 flex-1 lg:order-none lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:h-full">
           <p2p-lockstep-board-host></p2p-lockstep-board-host>
-          <div class="lg:sticky lg:bottom-6">
+        </div>
+
+        <div class="order-3 shrink-0 lg:order-none lg:col-start-2 lg:row-start-2 lg:self-end">
+          <div class="shrink-0 lg:sticky lg:bottom-6">
             <p2p-lockstep-action-bar></p2p-lockstep-action-bar>
           </div>
         </div>
       </section>
     `;
 
-    this.#title = this.querySelector("[data-title]");
-    this.#subtitle = this.querySelector("[data-subtitle]");
     this.#statusPanel = this.querySelector("p2p-lockstep-status-panel");
     this.#actionBar = this.querySelector("p2p-lockstep-action-bar");
     this.#boardHost = this.querySelector("p2p-lockstep-board-host");
@@ -89,16 +81,12 @@ export class P2PLockstepGamePageElement extends HTMLElement {
   }
 
   #syncChildren() {
-    if (!this.#title || !this.#subtitle || !this.#statusPanel || !this.#actionBar) {
+    if (!this.#statusPanel || !this.#actionBar) {
       return;
     }
 
-    this.#title.textContent = this.#state.gameTitle;
-    this.#subtitle.textContent = this.#state.connected
-      ? "Connection established. The board host is ready for the actual game implementation."
-      : "The game surface stays active so reconnect and recovery can happen without losing context.";
-
     this.#statusPanel.state = {
+      gameTitle: this.#state.gameTitle,
       peerId: this.#state.peerId,
       remotePeerId: this.#state.remotePeerId,
       connected: this.#state.connected,
@@ -120,6 +108,7 @@ export class P2PLockstepGamePageElement extends HTMLElement {
       canStart: this.#state.canStart,
       canUndo: this.#state.canUndo,
       canRestart: this.#state.canRestart,
+      started: this.#state.started,
       connectionState: this.#state.connectionState,
     };
   }

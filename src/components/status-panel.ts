@@ -2,6 +2,7 @@ import type { StatusPanelState } from "../types";
 import { setText } from "../utils/dom";
 
 const defaultState: StatusPanelState = {
+  gameTitle: "P2P Lockstep",
   peerId: "",
   remotePeerId: "",
   connected: false,
@@ -24,6 +25,16 @@ const turnLabel = (owner: StatusPanelState["turnOwner"]) => {
     return "Peer turn";
   }
   return "Waiting";
+};
+
+const shortId = (value: string) => {
+  if (!value) {
+    return "not set";
+  }
+  if (value.length <= 14) {
+    return value;
+  }
+  return `${value.slice(0, 7)}...${value.slice(-4)}`;
 };
 
 export class P2PLockstepStatusPanelElement extends HTMLElement {
@@ -51,58 +62,197 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
 
   render() {
     const { connected, pendingAction } = this.#state;
+    const statusTone = connected
+      ? "bg-[var(--lock-teal)]"
+      : "bg-[var(--lock-dim)]";
+    const connectionLabel = connected ? "Live" : "Standby";
+    const readySummary = `${this.#state.readySelf ? "Me ready" : "Me idle"} / ${
+      this.#state.readyPeer ? "Peer ready" : "Peer idle"
+    }`;
 
     this.className = "block";
     this.innerHTML = `
-      <section class="lock-panel grid gap-3 rounded-[2rem] p-4 text-sm text-[var(--lock-muted)]">
-        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-          <article class="rounded-[1.4rem] border border-[var(--lock-border)] bg-[rgba(245,234,210,0.045)] p-4">
-            <p class="text-[0.68rem] uppercase tracking-[0.26em] text-[var(--lock-dim)]">Connection</p>
-            <p class="mt-2 text-base font-semibold text-[var(--lock-paper)]">${connected ? "Live" : "Standby"}</p>
-            <p data-connection-state class="mt-1 text-sm text-[var(--lock-muted)]"></p>
-          </article>
+      <section class="lock-panel rounded-[1.25rem] p-2.5 text-sm text-[var(--lock-muted)] sm:rounded-[1.5rem] sm:p-3 lg:rounded-[1.75rem] lg:p-2.5">
+        <div class="flex items-center gap-2 lg:hidden">
+          <div class="min-w-0 flex-1">
+            <p data-mobile-title class="truncate text-sm font-semibold leading-tight text-[var(--lock-paper)]"></p>
+            <div class="mt-1 flex min-w-0 items-center gap-1.5 text-[0.68rem] leading-none text-[var(--lock-muted)]">
+              <span class="h-2 w-2 shrink-0 rounded-full ${statusTone}"></span>
+              <span data-mobile-connection class="shrink-0 font-medium"></span>
+              <span class="text-[var(--lock-dim)]">/</span>
+              <span data-mobile-turn class="min-w-0 truncate"></span>
+            </div>
+          </div>
 
-          <article class="rounded-[1.4rem] border border-[var(--lock-border)] bg-[rgba(245,234,210,0.045)] p-4">
-            <p class="text-[0.68rem] uppercase tracking-[0.26em] text-[var(--lock-dim)]">Turn</p>
-            <p data-current-turn class="mt-2 text-base font-semibold text-[var(--lock-paper)]"></p>
-            <p data-turn-owner class="mt-1 text-sm text-[var(--lock-muted)]"></p>
-          </article>
+          <div class="hidden shrink-0 rounded-full border border-[var(--lock-border)] px-2.5 py-1 text-[0.65rem] text-[var(--lock-muted)] min-[390px]:block">
+            <span data-mobile-ready></span>
+          </div>
+
+          <details class="group relative shrink-0">
+            <summary
+              aria-label="Match details"
+              class="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full border border-[var(--lock-border)] bg-[rgba(255,255,252,0.7)] text-base font-semibold leading-none text-[var(--lock-muted)] transition hover:border-[var(--lock-border-strong)] hover:bg-white [&::-webkit-details-marker]:hidden"
+            >
+              ...
+            </summary>
+            <div class="absolute right-0 z-30 mt-2 w-[min(22rem,calc(100vw-1.5rem))] rounded-[1.2rem] border border-[var(--lock-border-strong)] bg-[var(--lock-surface-strong)] p-3.5 shadow-xl shadow-black/10 backdrop-blur-xl">
+              <div class="grid grid-cols-2 gap-2">
+                <article class="rounded-[1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.54)] p-3">
+                  <p class="text-[0.6rem] uppercase tracking-[0.18em] text-[var(--lock-dim)]">Connection</p>
+                  <p data-detail-connection class="mt-1.5 text-sm font-semibold text-[var(--lock-paper)]"></p>
+                </article>
+                <article class="rounded-[1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.54)] p-3">
+                  <p class="text-[0.6rem] uppercase tracking-[0.18em] text-[var(--lock-dim)]">Turn</p>
+                  <p data-detail-turn class="mt-1.5 text-sm font-semibold text-[var(--lock-paper)]"></p>
+                </article>
+              </div>
+
+              <div class="mt-2 rounded-[1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.54)] p-3">
+                <p class="text-[0.6rem] uppercase tracking-[0.18em] text-[var(--lock-dim)]">Identity</p>
+                <p class="lock-mono mt-1.5 break-all text-xs text-[var(--lock-muted)]">Session: <span data-detail-session class="text-[var(--lock-paper)]"></span></p>
+                <p class="lock-mono mt-1.5 break-all text-xs text-[var(--lock-muted)]">Me: <span data-detail-peer class="text-[var(--lock-paper)]"></span></p>
+                <p class="lock-mono mt-1.5 break-all text-xs text-[var(--lock-muted)]">Peer: <span data-detail-remote class="text-[var(--lock-paper)]"></span></p>
+              </div>
+
+              <div class="mt-2 flex flex-wrap gap-1.5">
+                <span data-detail-ready-self class="rounded-full border border-[var(--lock-border)] px-2.5 py-1 text-[0.68rem] text-[var(--lock-muted)]"></span>
+                <span data-detail-ready-peer class="rounded-full border border-[var(--lock-border)] px-2.5 py-1 text-[0.68rem] text-[var(--lock-muted)]"></span>
+                <span data-detail-local-state class="rounded-full border border-[var(--lock-border)] px-2.5 py-1 text-[0.68rem] text-[var(--lock-muted)]"></span>
+                <span data-detail-remote-state class="rounded-full border border-[var(--lock-border)] px-2.5 py-1 text-[0.68rem] text-[var(--lock-muted)]"></span>
+                ${
+                  pendingAction
+                    ? `<span class="rounded-full border border-[var(--lock-border-strong)] bg-[rgba(201,149,67,0.14)] px-2.5 py-1 text-[0.68rem] text-[var(--lock-bronze-bright)]">Pending ${pendingAction}</span>`
+                    : ""
+                }
+              </div>
+            </div>
+          </details>
         </div>
 
-        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
-          <article class="rounded-[1.4rem] border border-[var(--lock-border)] bg-[rgba(245,234,210,0.045)] p-4">
-            <p class="text-[0.68rem] uppercase tracking-[0.26em] text-[var(--lock-dim)]">Identity</p>
-            <p class="mt-2 text-sm font-medium text-[var(--lock-muted)]">Session: <span data-session-id class="lock-mono text-[var(--lock-paper)]"></span></p>
-            <p data-peer-id class="lock-mono mt-2 break-all text-sm text-[var(--lock-paper)]"></p>
-            <p data-remote-peer-id class="lock-mono mt-2 break-all text-xs text-[var(--lock-dim)]"></p>
+        <div class="hidden gap-2 lg:grid">
+          <article class="rounded-[1.15rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.52)] p-2.5">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-[0.62rem] uppercase tracking-[0.2em] text-[var(--lock-dim)]">Match</p>
+                <p data-title class="mt-1.5 truncate text-xl font-semibold leading-none tracking-[-0.035em] text-[var(--lock-paper)]"></p>
+              </div>
+              <span class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full ${statusTone}"></span>
+            </div>
           </article>
 
-          <article class="rounded-[1.4rem] border border-[var(--lock-border)] bg-[rgba(245,234,210,0.045)] p-4">
-            <p class="text-[0.68rem] uppercase tracking-[0.26em] text-[var(--lock-dim)]">Lobby State</p>
-            <div class="mt-3 flex flex-wrap gap-2">
-              <span data-ready-self class="rounded-full border border-[var(--lock-border)] px-3 py-1 text-xs text-[var(--lock-muted)]"></span>
-              <span data-ready-peer class="rounded-full border border-[var(--lock-border)] px-3 py-1 text-xs text-[var(--lock-muted)]"></span>
-              <span data-local-state class="rounded-full border border-[var(--lock-border)] px-3 py-1 text-xs text-[var(--lock-muted)]"></span>
-              <span data-remote-state class="rounded-full border border-[var(--lock-border)] px-3 py-1 text-xs text-[var(--lock-muted)]"></span>
+          <div class="grid grid-cols-2 gap-2">
+            <article class="rounded-[1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.52)] p-2.5">
+              <p class="text-[0.58rem] uppercase tracking-[0.2em] text-[var(--lock-dim)]">Connection</p>
+              <p class="mt-1.5 text-sm font-semibold text-[var(--lock-paper)]">${connectionLabel}</p>
+              <p data-connection-state class="mt-0.5 truncate text-xs text-[var(--lock-muted)]"></p>
+            </article>
+
+            <article class="rounded-[1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.52)] p-2.5">
+              <p class="text-[0.58rem] uppercase tracking-[0.2em] text-[var(--lock-dim)]">Turn</p>
+              <p data-current-turn class="mt-1.5 text-sm font-semibold text-[var(--lock-paper)]"></p>
+              <p data-turn-owner class="mt-0.5 truncate text-xs text-[var(--lock-muted)]"></p>
+            </article>
+          </div>
+
+          <article class="rounded-[1.15rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.52)] p-2.5">
+            <p class="text-[0.62rem] uppercase tracking-[0.2em] text-[var(--lock-dim)]">Identity</p>
+            <div class="mt-2 grid gap-1.5 text-xs">
+              <p class="flex items-center justify-between gap-2 text-[var(--lock-muted)]">
+                <span>Session</span>
+                <span data-session-id class="lock-mono min-w-0 truncate text-[var(--lock-paper)]"></span>
+              </p>
+              <p class="flex items-center justify-between gap-2 text-[var(--lock-muted)]">
+                <span>Me</span>
+                <span data-peer-id class="lock-mono min-w-0 truncate text-[var(--lock-paper)]"></span>
+              </p>
+              <p class="flex items-center justify-between gap-2 text-[var(--lock-muted)]">
+                <span>Peer</span>
+                <span data-remote-peer-id class="lock-mono min-w-0 truncate text-[var(--lock-paper)]"></span>
+              </p>
+            </div>
+          </article>
+
+          <article class="rounded-[1.15rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.52)] p-2.5">
+            <p class="text-[0.62rem] uppercase tracking-[0.2em] text-[var(--lock-dim)]">State</p>
+            <div class="mt-2 flex flex-wrap gap-1.5">
+              <span data-ready-self class="rounded-full border border-[var(--lock-border)] px-2 py-0.5 text-[0.64rem] text-[var(--lock-muted)]"></span>
+              <span data-ready-peer class="rounded-full border border-[var(--lock-border)] px-2 py-0.5 text-[0.64rem] text-[var(--lock-muted)]"></span>
+              <span data-local-state class="rounded-full border border-[var(--lock-border)] px-2 py-0.5 text-[0.64rem] text-[var(--lock-muted)]"></span>
+              <span data-remote-state class="rounded-full border border-[var(--lock-border)] px-2 py-0.5 text-[0.64rem] text-[var(--lock-muted)]"></span>
               ${
                 pendingAction
-                  ? `<span class="rounded-full border border-[var(--lock-border-strong)] bg-[rgba(201,149,67,0.14)] px-3 py-1 text-xs text-[var(--lock-bronze-bright)]">Pending ${pendingAction}</span>`
+                  ? `<span class="rounded-full border border-[var(--lock-border-strong)] bg-[rgba(201,149,67,0.14)] px-2 py-0.5 text-[0.64rem] text-[var(--lock-bronze-bright)]">Pending ${pendingAction}</span>`
                   : ""
               }
             </div>
           </article>
         </div>
+        </div>
       </section>
     `;
 
+    setText(this, "[data-mobile-title]", this.#state.gameTitle);
+    setText(this, "[data-mobile-connection]", connectionLabel);
+    setText(
+      this,
+      "[data-mobile-turn]",
+      `#${this.#state.currentTurn} ${turnLabel(this.#state.turnOwner)}`,
+    );
+    setText(this, "[data-mobile-ready]", readySummary);
+    setText(this, "[data-detail-connection]", this.#state.connectionState);
+    setText(
+      this,
+      "[data-detail-turn]",
+      `#${this.#state.currentTurn} / ${turnLabel(this.#state.turnOwner)}`,
+    );
+    setText(this, "[data-detail-session]", this.#state.sessionId);
+    setText(this, "[data-detail-peer]", shortId(this.#state.peerId));
+    setText(this, "[data-detail-remote]", shortId(this.#state.remotePeerId));
+    setText(
+      this,
+      "[data-detail-ready-self]",
+      `Me ${this.#state.readySelf ? "ready" : "idle"}`,
+    );
+    setText(
+      this,
+      "[data-detail-ready-peer]",
+      `Peer ${this.#state.readyPeer ? "ready" : "idle"}`,
+    );
+    setText(
+      this,
+      "[data-detail-local-state]",
+      `Local ${this.#state.localState}`,
+    );
+    setText(
+      this,
+      "[data-detail-remote-state]",
+      `Remote ${this.#state.remoteState}`,
+    );
+    setText(this, "[data-title]", this.#state.gameTitle);
     setText(this, "[data-connection-state]", this.#state.connectionState);
     setText(this, "[data-current-turn]", `#${this.#state.currentTurn}`);
     setText(this, "[data-turn-owner]", turnLabel(this.#state.turnOwner));
     setText(this, "[data-session-id]", this.#state.sessionId);
-    setText(this, "[data-peer-id]", this.#state.peerId || "Local peer ID will appear after register.");
-    setText(this, "[data-remote-peer-id]", this.#state.remotePeerId || "Remote peer not connected yet.");
-    setText(this, "[data-ready-self]", `Me ${this.#state.readySelf ? "ready" : "idle"}`);
-    setText(this, "[data-ready-peer]", `Peer ${this.#state.readyPeer ? "ready" : "idle"}`);
+    setText(
+      this,
+      "[data-peer-id]",
+      this.#state.peerId || "Local peer ID will appear after register.",
+    );
+    setText(
+      this,
+      "[data-remote-peer-id]",
+      this.#state.remotePeerId || "Remote peer not connected yet.",
+    );
+    setText(
+      this,
+      "[data-ready-self]",
+      `Me ${this.#state.readySelf ? "ready" : "idle"}`,
+    );
+    setText(
+      this,
+      "[data-ready-peer]",
+      `Peer ${this.#state.readyPeer ? "ready" : "idle"}`,
+    );
     setText(this, "[data-local-state]", `Local ${this.#state.localState}`);
     setText(this, "[data-remote-state]", `Remote ${this.#state.remoteState}`);
   }

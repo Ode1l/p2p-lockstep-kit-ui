@@ -1,5 +1,11 @@
 packages:
   - "."
 
+allowBuilds:
+  esbuild: false
+
+minimumReleaseAgeExclude:
+  - p2p-lockstep-kit-session@0.1.4
+
 onlyBuiltDependencies:
   - esbuild

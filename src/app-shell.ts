@@ -104,8 +104,14 @@ export class P2PLockstepAppElement extends HTMLElement {
       signalUrl: this.getAttribute("signal-url") ?? undefined,
     });
     this.render();
-    this.addEventListener("lockstep-register", this.#handleRegisterEvent as EventListener);
-    this.addEventListener("lockstep-connect", this.#handleConnectEvent as EventListener);
+    this.addEventListener(
+      "lockstep-register",
+      this.#handleRegisterEvent as EventListener,
+    );
+    this.addEventListener(
+      "lockstep-connect",
+      this.#handleConnectEvent as EventListener,
+    );
     this.addEventListener(
       "lockstep-signal-change",
       this.#handleSignalChangeEvent as EventListener,
@@ -118,11 +124,26 @@ export class P2PLockstepAppElement extends HTMLElement {
       "lockstep-share-detected",
       this.#handleShareDetectedEvent as EventListener,
     );
-    this.addEventListener("lockstep-copy-share", this.#handleCopyShareEvent as EventListener);
-    this.addEventListener("lockstep-ready", this.#handleReadyEvent as EventListener);
-    this.addEventListener("lockstep-start", this.#handleStartEvent as EventListener);
-    this.addEventListener("lockstep-undo", this.#handleUndoEvent as EventListener);
-    this.addEventListener("lockstep-restart", this.#handleRestartEvent as EventListener);
+    this.addEventListener(
+      "lockstep-copy-share",
+      this.#handleCopyShareEvent as EventListener,
+    );
+    this.addEventListener(
+      "lockstep-ready",
+      this.#handleReadyEvent as EventListener,
+    );
+    this.addEventListener(
+      "lockstep-start",
+      this.#handleStartEvent as EventListener,
+    );
+    this.addEventListener(
+      "lockstep-undo",
+      this.#handleUndoEvent as EventListener,
+    );
+    this.addEventListener(
+      "lockstep-restart",
+      this.#handleRestartEvent as EventListener,
+    );
     this.addEventListener(
       "lockstep-dialog-confirm",
       this.#handleDialogConfirmEvent as EventListener,
@@ -136,8 +157,14 @@ export class P2PLockstepAppElement extends HTMLElement {
   }
 
   disconnectedCallback() {
-    this.removeEventListener("lockstep-register", this.#handleRegisterEvent as EventListener);
-    this.removeEventListener("lockstep-connect", this.#handleConnectEvent as EventListener);
+    this.removeEventListener(
+      "lockstep-register",
+      this.#handleRegisterEvent as EventListener,
+    );
+    this.removeEventListener(
+      "lockstep-connect",
+      this.#handleConnectEvent as EventListener,
+    );
     this.removeEventListener(
       "lockstep-signal-change",
       this.#handleSignalChangeEvent as EventListener,
@@ -150,11 +177,26 @@ export class P2PLockstepAppElement extends HTMLElement {
       "lockstep-share-detected",
       this.#handleShareDetectedEvent as EventListener,
     );
-    this.removeEventListener("lockstep-copy-share", this.#handleCopyShareEvent as EventListener);
-    this.removeEventListener("lockstep-ready", this.#handleReadyEvent as EventListener);
-    this.removeEventListener("lockstep-start", this.#handleStartEvent as EventListener);
-    this.removeEventListener("lockstep-undo", this.#handleUndoEvent as EventListener);
-    this.removeEventListener("lockstep-restart", this.#handleRestartEvent as EventListener);
+    this.removeEventListener(
+      "lockstep-copy-share",
+      this.#handleCopyShareEvent as EventListener,
+    );
+    this.removeEventListener(
+      "lockstep-ready",
+      this.#handleReadyEvent as EventListener,
+    );
+    this.removeEventListener(
+      "lockstep-start",
+      this.#handleStartEvent as EventListener,
+    );
+    this.removeEventListener(
+      "lockstep-undo",
+      this.#handleUndoEvent as EventListener,
+    );
+    this.removeEventListener(
+      "lockstep-restart",
+      this.#handleRestartEvent as EventListener,
+    );
     this.removeEventListener(
       "lockstep-dialog-confirm",
       this.#handleDialogConfirmEvent as EventListener,
@@ -170,7 +212,11 @@ export class P2PLockstepAppElement extends HTMLElement {
     this.#network.disconnect();
   }
 
-  attributeChangedCallback(name: string, _oldValue: string | null, newValue: string | null) {
+  attributeChangedCallback(
+    name: string,
+    _oldValue: string | null,
+    newValue: string | null,
+  ) {
     if (!this.#ready) {
       return;
     }
@@ -194,7 +240,8 @@ export class P2PLockstepAppElement extends HTMLElement {
   }
 
   render() {
-    this.className = "block min-h-svh bg-[var(--lock-bg-deep)] text-[var(--lock-paper)]";
+    this.className =
+      "block min-h-svh bg-[var(--lock-bg-deep)] text-[var(--lock-paper)]";
     this.innerHTML = `
       <div class="relative min-h-svh overflow-hidden bg-[radial-gradient(circle_at_18%_8%,rgba(255,255,255,0.85),transparent_28%),linear-gradient(145deg,var(--lock-bg),var(--lock-bg-deep))]">
         <div class="pointer-events-none absolute inset-0 hidden opacity-[0.45] sm:block bg-[linear-gradient(rgba(28,28,26,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(28,28,26,0.03)_1px,transparent_1px)] bg-[size:3.25rem_3.25rem]"></div>
@@ -207,7 +254,7 @@ export class P2PLockstepAppElement extends HTMLElement {
                 <p class="text-xs text-[var(--lock-muted)]">private match console</p>
               </div>
             </div>
-            <div class="rounded-full border border-[var(--lock-border)] bg-[rgba(255,255,252,0.78)] px-3 py-1 text-xs uppercase tracking-[0.16em] text-[var(--lock-muted)]">
+            <div data-shell-connection-state class="rounded-full border border-[var(--lock-border)] bg-[rgba(255,255,252,0.78)] px-3 py-1 text-xs uppercase tracking-[0.16em] text-[var(--lock-muted)]">
               ${this.#state.connectionState}
             </div>
           </header>
@@ -252,7 +299,9 @@ export class P2PLockstepAppElement extends HTMLElement {
             onError: observer.onError,
             onGameEvent: observer.onGameEvent ?? (() => {}),
           }) ?? (() => {}),
-        getSnapshot: () => (this.#session?.observer.getSnapshot() as SessionSnapshot | null) ?? null,
+        getSnapshot: () =>
+          (this.#session?.observer.getSnapshot() as SessionSnapshot | null) ??
+          null,
       },
       network: {
         register: (url: string) => this.#network.register(url),
@@ -269,7 +318,10 @@ export class P2PLockstepAppElement extends HTMLElement {
       onConnectionChange: (connected) => this.#applyConnectionState(connected),
       onGameEvent: () => {},
       onError: (error) => {
-        this.#patchState({ lastError: error.message, connectionState: "error" });
+        this.#patchState({
+          lastError: error.message,
+          connectionState: "error",
+        });
         this.#showToast(error.message);
       },
     };
@@ -316,7 +368,10 @@ export class P2PLockstepAppElement extends HTMLElement {
 
     try {
       const { peerId } = await this.#network.register(trimmed);
-      this.#session?.net.setPeerIds({ local: peerId, remote: this.#state.remotePeerId || null });
+      this.#session?.net.setPeerIds({
+        local: peerId,
+        remote: this.#state.remotePeerId || null,
+      });
       this.#patchState({
         peerId,
         registering: false,
@@ -329,9 +384,14 @@ export class P2PLockstepAppElement extends HTMLElement {
       this.#patchState({
         registering: false,
         connectionState: "error",
-        lastError: error instanceof Error ? error.message : "Failed to register signaling session.",
+        lastError:
+          error instanceof Error
+            ? error.message
+            : "Failed to register signaling session.",
       });
-      this.#showToast(this.#state.lastError || "Failed to register signaling session.");
+      this.#showToast(
+        this.#state.lastError || "Failed to register signaling session.",
+      );
     }
   }
 
@@ -352,7 +412,10 @@ export class P2PLockstepAppElement extends HTMLElement {
       connectionState: "connecting",
       screen: "game",
     });
-    this.#session?.net.setPeerIds({ local: this.#state.peerId || null, remote: trimmed });
+    this.#session?.net.setPeerIds({
+      local: this.#state.peerId || null,
+      remote: trimmed,
+    });
 
     try {
       await this.#network.connect(trimmed);
@@ -364,26 +427,33 @@ export class P2PLockstepAppElement extends HTMLElement {
       this.#patchState({
         connecting: false,
         connectionState: "error",
-        lastError: error instanceof Error ? error.message : "Failed to start peer connection.",
+        lastError:
+          error instanceof Error
+            ? error.message
+            : "Failed to start peer connection.",
       });
-      this.#showToast(this.#state.lastError || "Failed to start peer connection.");
+      this.#showToast(
+        this.#state.lastError || "Failed to start peer connection.",
+      );
     }
   }
 
   #applySnapshot(snapshot: SessionSnapshot) {
+    const snapshotConnected = snapshot.connected || this.#state.connected;
     const readySelf = readyStates.includes(snapshot.localState);
     const readyPeer = readyStates.includes(snapshot.remoteState);
-    const canReady =
-      this.#state.connected && (snapshot.localState === "idle" || snapshot.localState === "ready");
-    const canStart = this.#state.connected && snapshot.localState === "could_start";
+    const canReady = snapshotConnected && snapshot.localState === "idle";
+    const canStart = snapshotConnected && snapshot.localState === "could_start";
     const canUndo =
-      this.#state.connected &&
-      (snapshot.localState === "turn" || snapshot.localState === "remote_turn") &&
+      snapshotConnected &&
+      (snapshot.localState === "turn" ||
+        snapshot.localState === "remote_turn") &&
       !snapshot.pendingAction &&
       snapshot.history.length > 0;
     const canRestart =
-      this.#state.connected &&
-      (snapshot.localState === "turn" || snapshot.localState === "remote_turn") &&
+      snapshotConnected &&
+      (snapshot.localState === "turn" ||
+        snapshot.localState === "remote_turn") &&
       !snapshot.pendingAction;
     const started =
       activeStates.includes(snapshot.localState) ||
@@ -398,10 +468,15 @@ export class P2PLockstepAppElement extends HTMLElement {
     this.#patchState({
       readySelf,
       readyPeer,
+      connected: snapshotConnected,
+      connectionState: snapshotConnected
+        ? "connected"
+        : this.#state.connectionState,
       canReady,
       canStart,
       canUndo,
       canRestart,
+      screen: snapshotConnected ? "game" : this.#state.screen,
       started,
       currentTurn: snapshot.turn,
       turnOwner,
@@ -436,12 +511,13 @@ export class P2PLockstepAppElement extends HTMLElement {
   #applyConnectionState(connected: boolean) {
     const wasOnGameScreen = this.#state.screen === "game";
     const peerState = this.#network.peerState();
-    const remotePeerId = this.#network.getRemotePeerId() ?? this.#state.remotePeerId;
+    const remotePeerId =
+      this.#network.getRemotePeerId() ?? this.#state.remotePeerId;
     const peerId = this.#network.getLocalPeerId() ?? this.#state.peerId;
 
     const connectionState =
       peerState === "connected"
-          ? "connected"
+        ? "connected"
         : peerState === "requesting"
           ? "connecting"
           : wasOnGameScreen
@@ -487,6 +563,12 @@ export class P2PLockstepAppElement extends HTMLElement {
 
     lobby.toggleAttribute("hidden", this.#state.screen !== "lobby");
     game.toggleAttribute("hidden", this.#state.screen !== "game");
+    const shellConnectionState = this.querySelector<HTMLElement>(
+      "[data-shell-connection-state]",
+    );
+    if (shellConnectionState) {
+      shellConnectionState.textContent = this.#state.connectionState;
+    }
 
     lobby.state = {
       gameTitle: this.#state.gameTitle,
@@ -511,6 +593,7 @@ export class P2PLockstepAppElement extends HTMLElement {
       canStart: this.#state.canStart,
       canUndo: this.#state.canUndo,
       canRestart: this.#state.canRestart,
+      started: this.#state.started,
       currentTurn: this.#state.currentTurn,
       turnOwner: this.#state.turnOwner,
       localState: this.#state.localState,
@@ -574,7 +657,9 @@ export class P2PLockstepAppElement extends HTMLElement {
     this.#patchState({ targetId: event.detail.targetId });
   };
 
-  #handleShareDetectedEvent = (event: CustomEvent<{ peerId: string; signalUrl: string }>) => {
+  #handleShareDetectedEvent = (
+    event: CustomEvent<{ peerId: string; signalUrl: string }>,
+  ) => {
     this.#patchState({
       targetId: event.detail.peerId,
       signalUrl: event.detail.signalUrl || this.#state.signalUrl,

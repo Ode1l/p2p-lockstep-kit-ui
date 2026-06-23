@@ -134,6 +134,7 @@ export type LobbyPageState = Pick<
 
 export type StatusPanelState = Pick<
   AppState,
+  | "gameTitle"
   | "peerId"
   | "remotePeerId"
   | "connected"
@@ -156,6 +157,7 @@ export type ActionBarState = Pick<
   | "canStart"
   | "canUndo"
   | "canRestart"
+  | "started"
   | "connectionState"
 >;
 
@@ -172,6 +174,7 @@ export type GamePageState = Pick<
   | "canStart"
   | "canUndo"
   | "canRestart"
+  | "started"
   | "currentTurn"
   | "turnOwner"
   | "localState"
