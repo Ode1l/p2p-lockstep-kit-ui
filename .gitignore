@@ -1,6 +1,7 @@
 node_modules
 .idea
 dist
+dist-pages
 package-lock.json
 pnpm-lock.yaml
 .DS_Store

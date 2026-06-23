@@ -16,7 +16,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && tsc -p tsconfig.build.json && node ./scripts/postbuild.mjs",
+    "build:pages": "vite build --config vite.pages.config.ts",
     "preview": "vite preview",
+    "preview:pages": "vite preview --outDir dist-pages",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "format": "prettier -w ."
   },

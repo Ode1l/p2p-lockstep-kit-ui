@@ -155,3 +155,19 @@ pnpm build
 ```
 
 The local Vite config aliases `p2p-lockstep-kit-network` and `p2p-lockstep-kit-session` to sibling source folders for development. Published consumers resolve the package dependencies normally.
+
+## Cloudflare Pages Demo
+
+`pnpm build` builds the npm library package and does not emit an `index.html`.
+Use the Pages build when deploying the demo site:
+
+```bash
+pnpm build:pages
+```
+
+Cloudflare Pages settings:
+
+```text
+Build command: pnpm build:pages
+Build output directory: dist-pages
+```

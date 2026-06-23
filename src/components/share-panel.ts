@@ -41,51 +41,30 @@ export class P2PLockstepSharePanelElement extends HTMLElement {
     const { shareUrl } = this.#state;
     this.className = "block";
     this.innerHTML = `
-      <section class="flex h-full flex-col gap-4 rounded-[2rem] border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
-        <div class="space-y-2">
-          <p class="text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-teal-200/70">
-            Share
-          </p>
-          <h3 class="text-lg font-semibold text-white">Invite your peer</h3>
-          <p class="max-w-md text-sm leading-6 text-slate-300">
-            Copy the direct share link or let the other side scan the QR code. The lobby stays
-            mobile-friendly, so this panel works for phone and desktop.
-          </p>
+      <section class="lock-panel flex h-full flex-col justify-between gap-3 rounded-[1.4rem] p-3.5 sm:gap-4 sm:rounded-[2rem] sm:p-5">
+        <div class="flex items-center justify-between gap-3">
+          <p class="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[var(--lock-dim)] sm:text-[0.7rem]">Share</p>
+          <span data-share-state class="rounded-full border border-[var(--lock-border)] bg-[rgba(255,255,252,0.62)] px-2.5 py-0.5 text-[0.65rem] uppercase tracking-[0.12em] text-[var(--lock-muted)] sm:px-3 sm:py-1 sm:text-xs"></span>
         </div>
 
-        <div class="grid gap-4 lg:grid-cols-[12rem_minmax(0,1fr)]">
-          <div class="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-3">
-            <canvas class="h-44 w-44 rounded-2xl bg-white"></canvas>
-          </div>
-
-          <div class="flex min-w-0 flex-col justify-between gap-3 rounded-[1.5rem] border border-white/10 bg-slate-950/50 p-4">
-            <div class="space-y-3">
-              <div>
-                <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Peer ID</p>
-                <p data-peer-id class="mt-1 break-all font-mono text-sm text-slate-100"></p>
-              </div>
-
-              <div>
-                <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Share URL</p>
-                <p data-share-url class="mt-1 break-all font-mono text-sm text-slate-300"></p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              data-action="copy-share"
-              class="inline-flex w-full items-center justify-center rounded-full bg-teal-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-teal-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
-              ${shareUrl ? "" : "disabled"}
-            >
-              Copy share link
-            </button>
+        <div class="flex flex-1 items-center justify-center">
+          <div class="rounded-[1.1rem] border border-[var(--lock-border)] bg-white p-2.5 shadow-sm sm:rounded-[1.7rem] sm:p-4">
+            <canvas class="h-40 w-40 rounded-xl bg-white sm:h-52 sm:w-52 sm:rounded-2xl"></canvas>
           </div>
         </div>
+
+        <button
+          type="button"
+          data-action="copy-share"
+          class="lock-primary lock-disabled inline-flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-semibold transition sm:py-4"
+          ${shareUrl ? "" : "disabled"}
+        >
+          Share
+        </button>
       </section>
     `;
 
-    setText(this, "[data-peer-id]", this.#state.peerId || "Not registered yet");
-    setText(this, "[data-share-url]", shareUrl || "Register first to generate a share link.");
+    setText(this, "[data-share-state]", shareUrl ? "ready" : "waiting");
 
     const canvas = this.querySelector("canvas");
     if (!canvas) {
@@ -100,10 +79,10 @@ export class P2PLockstepSharePanelElement extends HTMLElement {
 
     try {
       await QRCode.toCanvas(canvas, shareUrl, {
-        width: 176,
+        width: 208,
         margin: 1,
         color: {
-          dark: "#0f172a",
+          dark: "#1f1f1d",
           light: "#ffffff",
         },
       });

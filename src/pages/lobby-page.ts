@@ -52,83 +52,75 @@ export class P2PLockstepLobbyPageElement extends HTMLElement {
   render() {
     this.className = "block";
     this.innerHTML = `
-      <section class="grid min-h-full gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(22rem,0.85fr)]">
-        <div class="flex flex-col justify-between gap-6 rounded-[2.4rem] border border-white/10 bg-slate-950/70 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-8">
-          <div class="space-y-5">
-            <div class="space-y-3">
-              <p class="text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-teal-200/70">
-                Lobby
-              </p>
-              <h1 data-game-title class="max-w-xl text-4xl font-semibold tracking-tight text-white sm:text-5xl"></h1>
-              <p class="max-w-lg text-sm leading-7 text-slate-300 sm:text-base">
-                Register your peer, share the link, then move into the game surface. The lobby is
-                intentionally simple so it stays usable on phone and desktop.
-              </p>
+      <section class="mx-auto grid min-h-full max-w-5xl gap-3 sm:gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div class="lock-panel rounded-[1.4rem] p-3.5 sm:rounded-[2rem] sm:p-6 lg:p-7">
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <p class="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[var(--lock-dim)] sm:text-[0.68rem]">Lobby</p>
+              <h1 data-game-title class="mt-1.5 break-words text-3xl font-semibold leading-none tracking-[-0.04em] text-[var(--lock-paper)] sm:mt-3 sm:text-5xl lg:text-6xl"></h1>
             </div>
 
-            <div class="grid gap-4">
-              <section class="rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
-                <div class="mb-4 flex items-center justify-between gap-3">
-                  <div>
-                    <p class="text-[0.68rem] uppercase tracking-[0.26em] text-slate-500">Register</p>
-                    <h2 class="mt-2 text-lg font-semibold text-white">Signaling server</h2>
-                  </div>
-                  <span class="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-300">
-                    <span data-connection-state></span>
-                  </span>
-                </div>
-
+            <details class="group relative shrink-0">
+              <summary
+                aria-label="Server settings"
+                class="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full border border-[var(--lock-border)] bg-[rgba(255,255,252,0.7)] text-base font-semibold leading-none text-[var(--lock-muted)] transition hover:border-[var(--lock-border-strong)] hover:bg-white sm:h-10 sm:w-10 sm:text-lg [&::-webkit-details-marker]:hidden"
+              >
+                ...
+              </summary>
+              <div class="absolute right-0 z-20 mt-2 w-[min(21rem,calc(100vw-2rem))] rounded-[1.2rem] border border-[var(--lock-border-strong)] bg-[var(--lock-surface-strong)] p-3.5 shadow-xl shadow-black/10 backdrop-blur-xl sm:mt-3 sm:rounded-[1.6rem] sm:p-4">
                 <label class="block">
-                  <span class="mb-2 block text-sm text-slate-300">WebSocket URL</span>
+                  <span class="mb-2 block text-xs uppercase tracking-[0.22em] text-[var(--lock-dim)]">Signaling server</span>
                   <input
                     data-field="signal-url"
                     placeholder="wss://host"
-                    class="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-teal-300/50"
+                    class="lock-input lock-mono w-full rounded-2xl px-4 py-3 text-sm transition"
                   />
-                  <span class="mt-2 block text-xs leading-5 text-slate-500">
-                    Default server is prefilled. Change it only when you run your own signaling server.
-                  </span>
                 </label>
 
                 <button
                   type="button"
                   data-action="register"
-                  class="mt-4 inline-flex w-full items-center justify-center rounded-full bg-teal-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-teal-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+                  class="lock-primary lock-disabled mt-3 inline-flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-semibold transition"
                 >
                   <span data-register-label></span>
                 </button>
-
-                <div class="mt-4 rounded-[1.4rem] border border-white/8 bg-slate-950/55 p-4">
-                  <p class="text-[0.68rem] uppercase tracking-[0.26em] text-slate-500">Local Peer ID</p>
-                  <p data-peer-id class="mt-2 break-all font-mono text-sm text-slate-200"></p>
-                </div>
-              </section>
-
-              <section class="rounded-[1.8rem] border border-white/10 bg-white/5 p-5">
-                <div class="mb-4">
-                  <p class="text-[0.68rem] uppercase tracking-[0.26em] text-slate-500">Join</p>
-                  <h2 class="mt-2 text-lg font-semibold text-white">Connect to a peer</h2>
-                </div>
-
-                <label class="block">
-                  <span class="mb-2 block text-sm text-slate-300">Target peer or share URL</span>
-                  <input
-                    data-field="target-id"
-                    placeholder="peer id or share link"
-                    class="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-teal-300/50"
-                  />
-                </label>
-
-                <button
-                  type="button"
-                  data-action="connect"
-                  class="mt-4 inline-flex w-full items-center justify-center rounded-full bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
-                >
-                  <span data-connect-label></span>
-                </button>
-              </section>
-            </div>
+              </div>
+            </details>
           </div>
+
+          <div class="mt-4 grid grid-cols-2 gap-2 sm:mt-7 sm:gap-4">
+            <section class="rounded-[1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.58)] p-3 sm:rounded-[1.4rem] sm:p-4">
+              <p class="text-[0.58rem] uppercase tracking-[0.2em] text-[var(--lock-dim)] sm:text-[0.68rem]">Server</p>
+              <div class="mt-2 flex items-center gap-2 sm:mt-3 sm:gap-3">
+                <span data-status-dot class="h-2.5 w-2.5 rounded-full bg-slate-600"></span>
+                <span data-connection-state class="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--lock-paper)] sm:text-sm"></span>
+              </div>
+            </section>
+
+            <section class="rounded-[1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.58)] p-3 sm:rounded-[1.4rem] sm:p-4">
+              <p class="text-[0.58rem] uppercase tracking-[0.2em] text-[var(--lock-dim)] sm:text-[0.68rem]">Your ID</p>
+              <p data-peer-id class="lock-mono mt-2 max-h-9 min-h-4 overflow-hidden break-all text-[0.68rem] leading-[1.35] text-[var(--lock-paper)] sm:mt-3 sm:max-h-none sm:text-sm"></p>
+            </section>
+          </div>
+
+          <section class="mt-3 rounded-[1.1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.58)] p-3 sm:mt-5 sm:rounded-[1.8rem] sm:p-5">
+            <label class="block">
+              <span class="mb-1.5 block text-xs font-semibold text-[var(--lock-muted)] sm:mb-2 sm:text-sm">Peer ID or share link</span>
+              <input
+                data-field="target-id"
+                placeholder="Paste peer id"
+                class="lock-input lock-mono w-full rounded-xl px-3 py-3 text-sm transition sm:rounded-2xl sm:px-4 sm:py-4 sm:text-base"
+              />
+            </label>
+
+            <button
+              type="button"
+              data-action="connect"
+              class="lock-primary lock-disabled mt-3 inline-flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-semibold transition sm:mt-4 sm:py-4"
+            >
+              <span data-connect-label></span>
+            </button>
+          </section>
         </div>
 
         <p2p-lockstep-share-panel></p2p-lockstep-share-panel>
@@ -151,6 +143,20 @@ export class P2PLockstepLobbyPageElement extends HTMLElement {
     const registerButton = this.querySelector<HTMLButtonElement>("[data-action='register']");
     if (registerButton) {
       registerButton.disabled = this.#state.registering || !this.#state.signalUrl.trim();
+    }
+
+    const statusDot = this.querySelector<HTMLElement>("[data-status-dot]");
+    if (statusDot) {
+      const tone =
+        this.#state.connectionState === "registered" || this.#state.connectionState === "connected"
+          ? "bg-[var(--lock-teal)]"
+        : this.#state.connectionState === "registering" ||
+              this.#state.connectionState === "connecting"
+            ? "bg-[#c08a25]"
+            : this.#state.connectionState === "error" || this.#state.connectionState === "offline"
+              ? "bg-[var(--lock-rose)]"
+              : "bg-[var(--lock-dim)]";
+      statusDot.className = `h-3 w-3 rounded-full ${tone}`;
     }
 
     const connectButton = this.querySelector<HTMLButtonElement>("[data-action='connect']");

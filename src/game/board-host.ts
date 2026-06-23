@@ -40,14 +40,14 @@ export class P2PLockstepBoardHostElement extends HTMLElement {
   render() {
     this.className = "block h-full";
     this.innerHTML = `
-      <section class="relative h-full min-h-[22rem] overflow-hidden rounded-[2.2rem] border border-white/10 bg-slate-950/70">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(45,212,191,0.10),_transparent_48%),radial-gradient(circle_at_bottom,_rgba(248,250,252,0.06),_transparent_38%)]"></div>
+      <section class="relative h-full min-h-[22rem] overflow-hidden rounded-[2.2rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.72)] shadow-sm">
+        <div class="absolute inset-0 bg-[linear-gradient(45deg,rgba(28,28,26,0.035)_25%,transparent_25%,transparent_75%,rgba(28,28,26,0.035)_75%),linear-gradient(45deg,rgba(28,28,26,0.035)_25%,transparent_25%,transparent_75%,rgba(28,28,26,0.035)_75%)] bg-[position:0_0,1.5rem_1.5rem] bg-[size:3rem_3rem,3rem_3rem]"></div>
         <div data-board-mount class="relative z-10 h-full"></div>
         <div
           data-placeholder
-          class="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-6 text-center text-sm leading-6 text-slate-400"
+          class="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-6 text-center text-sm leading-6 text-[var(--lock-muted)]"
         >
-          Board host is ready. Mount the actual game board here in the next step.
+          Board host ready
         </div>
       </section>
     `;

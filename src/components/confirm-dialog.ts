@@ -42,27 +42,27 @@ export class P2PLockstepConfirmDialogElement extends HTMLElement {
     const { open } = this.#state;
     this.className = open ? "fixed inset-0 z-50 block" : "hidden";
     this.innerHTML = `
-      <div data-overlay class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"></div>
+      <div data-overlay class="absolute inset-0 bg-[rgba(7,6,4,0.76)] backdrop-blur-sm"></div>
       <div class="relative flex min-h-full items-end justify-center p-4 sm:items-center">
-        <section class="w-full max-w-md rounded-[2rem] border border-white/10 bg-slate-950/95 p-6 shadow-2xl shadow-black/40">
+        <section class="lock-panel w-full max-w-md rounded-[2rem] p-6">
           <div class="space-y-3">
-            <p class="text-[0.72rem] uppercase tracking-[0.28em] text-teal-200/70">Action Required</p>
-            <h3 data-title class="text-xl font-semibold text-white"></h3>
-            <p data-description class="text-sm leading-6 text-slate-300"></p>
+            <p class="text-[0.72rem] uppercase tracking-[0.28em] text-[var(--lock-bronze-bright)]">Action Required</p>
+            <h3 data-title class="lock-title text-2xl font-semibold text-[var(--lock-paper)]"></h3>
+            <p data-description class="text-sm leading-6 text-[var(--lock-muted)]"></p>
           </div>
 
           <div class="mt-6 grid gap-3 sm:grid-cols-2">
             <button
               type="button"
               data-action="confirm"
-              class="inline-flex items-center justify-center rounded-full bg-teal-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-teal-300"
+              class="lock-primary inline-flex items-center justify-center rounded-full px-4 py-3 text-sm font-semibold transition"
             >
               <span data-confirm-label></span>
             </button>
             <button
               type="button"
               data-action="cancel"
-              class="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/10"
+              class="lock-secondary inline-flex items-center justify-center rounded-full px-4 py-3 text-sm font-semibold transition"
             >
               <span data-cancel-label></span>
             </button>

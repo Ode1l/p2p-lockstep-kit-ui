@@ -194,26 +194,25 @@ export class P2PLockstepAppElement extends HTMLElement {
   }
 
   render() {
-    this.className = "block min-h-screen bg-slate-950 text-slate-100";
+    this.className = "block min-h-svh bg-[var(--lock-bg-deep)] text-[var(--lock-paper)]";
     this.innerHTML = `
-      <div class="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(45,212,191,0.12),_transparent_42%),radial-gradient(circle_at_bottom_right,_rgba(148,163,184,0.14),_transparent_36%),linear-gradient(180deg,_rgba(2,6,23,1),_rgba(15,23,42,1))]">
-        <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:2.8rem_2.8rem] opacity-20"></div>
+      <div class="relative min-h-svh overflow-hidden bg-[radial-gradient(circle_at_18%_8%,rgba(255,255,255,0.85),transparent_28%),linear-gradient(145deg,var(--lock-bg),var(--lock-bg-deep))]">
+        <div class="pointer-events-none absolute inset-0 hidden opacity-[0.45] sm:block bg-[linear-gradient(rgba(28,28,26,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(28,28,26,0.03)_1px,transparent_1px)] bg-[size:3.25rem_3.25rem]"></div>
 
-        <main class="relative mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
-          <header class="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-full border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-xl">
+        <main class="relative mx-auto flex min-h-svh max-w-7xl flex-col px-3 py-3 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+          <header class="lock-enter mb-5 hidden flex-wrap items-center justify-between gap-4 rounded-[1.25rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.72)] px-4 py-3 shadow-sm backdrop-blur-xl sm:flex">
             <div class="flex items-center gap-3">
-              <div class="h-3 w-3 rounded-full bg-teal-300 shadow-[0_0_20px_rgba(45,212,191,0.8)]"></div>
               <div>
-                <p class="text-[0.68rem] uppercase tracking-[0.28em] text-slate-500">P2P Lockstep UI</p>
-                <p class="text-sm font-medium text-slate-200">Web Components shell for lobby and game flow</p>
+                <p class="text-sm font-semibold text-[var(--lock-paper)]">P2P Lockstep</p>
+                <p class="text-xs text-[var(--lock-muted)]">private match console</p>
               </div>
             </div>
-            <div class="rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.22em] text-slate-400">
+            <div class="rounded-full border border-[var(--lock-border)] bg-[rgba(255,255,252,0.78)] px-3 py-1 text-xs uppercase tracking-[0.16em] text-[var(--lock-muted)]">
               ${this.#state.connectionState}
             </div>
           </header>
 
-          <div class="flex-1">
+          <div class="flex-1 lock-enter">
             <p2p-lockstep-lobby-page ${this.#state.screen === "lobby" ? "" : "hidden"}></p2p-lockstep-lobby-page>
             <p2p-lockstep-game-page ${this.#state.screen === "game" ? "" : "hidden"}></p2p-lockstep-game-page>
           </div>
@@ -285,7 +284,6 @@ export class P2PLockstepAppElement extends HTMLElement {
 
   async #bootstrapFromLocation() {
     const shared = readShareLocation();
-    const hasExplicitSignalUrl = this.hasAttribute("signal-url");
     if (shared.signalUrl) {
       this.#patchState({ signalUrl: shared.signalUrl });
     }
@@ -293,7 +291,7 @@ export class P2PLockstepAppElement extends HTMLElement {
       this.#patchState({ targetId: shared.peerId });
     }
 
-    if (!this.#state.signalUrl || (!hasExplicitSignalUrl && !shared.signalUrl && !shared.peerId)) {
+    if (!this.#state.signalUrl) {
       return;
     }
 

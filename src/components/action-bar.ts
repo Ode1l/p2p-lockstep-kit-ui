@@ -44,16 +44,16 @@ export class P2PLockstepActionBarElement extends HTMLElement {
 
     this.className = "block";
     this.innerHTML = `
-      <section class="rounded-[2rem] border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
+      <section class="lock-panel rounded-[2rem] p-4">
         <div class="flex flex-col gap-3">
           <button
             type="button"
             data-action="ready"
-            class="inline-flex items-center justify-center rounded-full px-4 py-3 text-sm font-semibold transition ${
+            class="lock-disabled inline-flex items-center justify-center rounded-full px-4 py-3 text-sm font-semibold transition ${
               readySelf
-                ? "border border-white/15 bg-white/5 text-slate-200 hover:bg-white/10"
-                : "bg-teal-400 text-slate-950 hover:bg-teal-300"
-            } disabled:cursor-not-allowed disabled:border-slate-800 disabled:bg-slate-900 disabled:text-slate-500"
+                ? "lock-secondary"
+                : "bg-[var(--lock-teal)] text-[#08120f] shadow-[0_12px_32px_rgba(110,231,200,0.22)] hover:brightness-105"
+            }"
             ${canReady ? "" : "disabled"}
           >
             ${readySelf ? "Ready Sent" : "Ready"}
@@ -63,7 +63,7 @@ export class P2PLockstepActionBarElement extends HTMLElement {
             <button
               type="button"
               data-action="start"
-              class="inline-flex items-center justify-center rounded-full bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-slate-900 disabled:text-slate-500"
+              class="lock-primary lock-disabled inline-flex items-center justify-center rounded-full px-4 py-3 text-sm font-semibold transition"
               ${canStart ? "" : "disabled"}
             >
               Start
@@ -71,7 +71,7 @@ export class P2PLockstepActionBarElement extends HTMLElement {
             <button
               type="button"
               data-action="undo"
-              class="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:border-slate-800 disabled:bg-slate-900 disabled:text-slate-500"
+              class="lock-secondary lock-disabled inline-flex items-center justify-center rounded-full px-4 py-3 text-sm font-semibold transition"
               ${canUndo ? "" : "disabled"}
             >
               Undo
@@ -79,7 +79,7 @@ export class P2PLockstepActionBarElement extends HTMLElement {
             <button
               type="button"
               data-action="restart"
-              class="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:border-slate-800 disabled:bg-slate-900 disabled:text-slate-500"
+              class="lock-secondary lock-disabled inline-flex items-center justify-center rounded-full px-4 py-3 text-sm font-semibold transition"
               ${canRestart ? "" : "disabled"}
             >
               Restart

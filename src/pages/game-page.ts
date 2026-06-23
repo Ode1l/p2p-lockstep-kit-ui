@@ -57,12 +57,12 @@ export class P2PLockstepGamePageElement extends HTMLElement {
     this.innerHTML = `
       <section class="grid h-full gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
         <aside class="flex flex-col gap-4">
-          <div class="rounded-[2rem] border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
-            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-teal-200/70">
+          <div class="lock-panel rounded-[2rem] p-5">
+            <p class="text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-[var(--lock-bronze-bright)]">
               Match
             </p>
-            <h2 data-title class="mt-3 text-3xl font-semibold tracking-tight text-white"></h2>
-            <p data-subtitle class="mt-3 text-sm leading-6 text-slate-300"></p>
+            <h2 data-title class="lock-title mt-3 text-4xl font-semibold leading-none tracking-[-0.04em] text-[var(--lock-paper)]"></h2>
+            <p data-subtitle class="mt-3 text-sm leading-6 text-[var(--lock-muted)]"></p>
           </div>
 
           <p2p-lockstep-status-panel></p2p-lockstep-status-panel>
