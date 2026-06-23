@@ -514,6 +514,8 @@ export class P2PLockstepAppElement extends HTMLElement {
     const remotePeerId =
       this.#network.getRemotePeerId() ?? this.#state.remotePeerId;
     const peerId = this.#network.getLocalPeerId() ?? this.#state.peerId;
+    const hasPeerActivity =
+      connected || peerState === "requesting" || wasOnGameScreen;
 
     const connectionState =
       peerState === "connected"
@@ -532,11 +534,13 @@ export class P2PLockstepAppElement extends HTMLElement {
       connected,
       connecting: peerState === "requesting",
       connectionState,
-      screen: connected || wasOnGameScreen ? "game" : "lobby",
+      screen: hasPeerActivity ? "game" : "lobby",
     });
 
     if (connected) {
       this.#showToast("Peer connected. Game page is live.");
+    } else if (peerState === "requesting" && !wasOnGameScreen) {
+      this.#showToast("Peer connection request received.");
     } else if (wasOnGameScreen && peerId) {
       this.#showToast("Peer disconnected. Waiting for reconnect.");
     }
