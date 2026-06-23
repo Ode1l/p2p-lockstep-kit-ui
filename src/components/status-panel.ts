@@ -67,6 +67,65 @@ const stateLabel = (
   return `${subject} ${state.replaceAll("_", " ")}`;
 };
 
+const connectionDisplay = (
+  connected: boolean,
+  state: StatusPanelState["connectionState"],
+) => {
+  if (connected || state === "connected") {
+    return {
+      label: "Live",
+      detail: "connected",
+      tone: "bg-[var(--lock-teal)]",
+    };
+  }
+
+  if (state === "registering") {
+    return {
+      label: "Registering",
+      detail: "signal server",
+      tone: "bg-[var(--lock-bronze)]",
+    };
+  }
+
+  if (state === "registered") {
+    return {
+      label: "Registered",
+      detail: "ready to share",
+      tone: "bg-[var(--lock-bronze-bright)]",
+    };
+  }
+
+  if (state === "connecting") {
+    return {
+      label: "Connecting",
+      detail: "peer handshake",
+      tone: "bg-[var(--lock-bronze-bright)]",
+    };
+  }
+
+  if (state === "offline") {
+    return {
+      label: "Offline",
+      detail: "waiting reconnect",
+      tone: "bg-[var(--lock-dim)]",
+    };
+  }
+
+  if (state === "error") {
+    return {
+      label: "Error",
+      detail: "check signal",
+      tone: "bg-[var(--lock-rose)]",
+    };
+  }
+
+  return {
+    label: "Standby",
+    detail: "not registered",
+    tone: "bg-[var(--lock-dim)]",
+  };
+};
+
 export class P2PLockstepStatusPanelElement extends HTMLElement {
   #state: StatusPanelState = defaultState;
   #ready = false;
@@ -92,10 +151,10 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
 
   render() {
     const { connected, pendingAction } = this.#state;
-    const statusTone = connected
-      ? "bg-[var(--lock-teal)]"
-      : "bg-[var(--lock-dim)]";
-    const connectionLabel = connected ? "Live" : "Standby";
+    const connection = connectionDisplay(
+      connected,
+      this.#state.connectionState,
+    );
     const selfReadyLabel = readinessLabel("Me", this.#state.localState);
     const peerReadyLabel = readinessLabel("Peer", this.#state.remoteState);
     const localStateLabel = stateLabel("Local", this.#state.localState);
@@ -109,7 +168,7 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
           <div class="min-w-0 flex-1">
             <p data-mobile-title class="truncate text-sm font-semibold leading-tight text-[var(--lock-paper)]"></p>
             <div class="mt-1 flex min-w-0 items-center gap-1.5 text-[0.68rem] leading-none text-[var(--lock-muted)]">
-              <span class="h-2 w-2 shrink-0 rounded-full ${statusTone}"></span>
+              <span class="h-2 w-2 shrink-0 rounded-full ${connection.tone}"></span>
               <span data-mobile-connection class="shrink-0 font-medium"></span>
               <span class="text-[var(--lock-dim)]">/</span>
               <span data-mobile-turn class="min-w-0 truncate"></span>
@@ -168,14 +227,14 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
                 <p class="text-[0.62rem] uppercase tracking-[0.2em] text-[var(--lock-dim)]">Match</p>
                 <p data-title class="mt-1.5 truncate text-xl font-semibold leading-none tracking-[-0.035em] text-[var(--lock-paper)]"></p>
               </div>
-              <span class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full ${statusTone}"></span>
+              <span class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full ${connection.tone}"></span>
             </div>
           </article>
 
           <div class="grid grid-cols-2 gap-2">
             <article class="rounded-[1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.52)] p-2.5">
               <p class="text-[0.58rem] uppercase tracking-[0.2em] text-[var(--lock-dim)]">Connection</p>
-              <p class="mt-1.5 text-sm font-semibold text-[var(--lock-paper)]">${connectionLabel}</p>
+              <p class="mt-1.5 text-sm font-semibold text-[var(--lock-paper)]">${connection.label}</p>
               <p data-connection-state class="mt-0.5 truncate text-xs text-[var(--lock-muted)]"></p>
             </article>
 
@@ -186,20 +245,20 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
             </article>
           </div>
 
-          <article class="rounded-[1.15rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.52)] p-2.5">
+          <article class="min-w-0 overflow-hidden rounded-[1.15rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.52)] p-2.5">
             <p class="text-[0.62rem] uppercase tracking-[0.2em] text-[var(--lock-dim)]">Identity</p>
             <div class="mt-2 grid gap-1.5 text-xs">
-              <p class="flex items-center justify-between gap-2 text-[var(--lock-muted)]">
+              <p class="grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-2 text-[var(--lock-muted)]">
                 <span>Session</span>
-                <span data-session-id class="lock-mono min-w-0 truncate text-[var(--lock-paper)]"></span>
+                <span data-session-id class="lock-mono block min-w-0 truncate text-right text-[var(--lock-paper)]"></span>
               </p>
-              <p class="flex items-center justify-between gap-2 text-[var(--lock-muted)]">
+              <p class="grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-2 text-[var(--lock-muted)]">
                 <span>Me</span>
-                <span data-peer-id class="lock-mono min-w-0 truncate text-[var(--lock-paper)]"></span>
+                <span data-peer-id class="lock-mono block min-w-0 truncate text-right text-[var(--lock-paper)]"></span>
               </p>
-              <p class="flex items-center justify-between gap-2 text-[var(--lock-muted)]">
+              <p class="grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-2 text-[var(--lock-muted)]">
                 <span>Peer</span>
-                <span data-remote-peer-id class="lock-mono min-w-0 truncate text-[var(--lock-paper)]"></span>
+                <span data-remote-peer-id class="lock-mono block min-w-0 truncate text-right text-[var(--lock-paper)]"></span>
               </p>
             </div>
           </article>
@@ -219,19 +278,18 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
             </div>
           </article>
         </div>
-        </div>
       </section>
     `;
 
     setText(this, "[data-mobile-title]", this.#state.gameTitle);
-    setText(this, "[data-mobile-connection]", connectionLabel);
+    setText(this, "[data-mobile-connection]", connection.label);
     setText(
       this,
       "[data-mobile-turn]",
       `#${this.#state.currentTurn} ${turnLabel(this.#state.turnOwner)}`,
     );
     setText(this, "[data-mobile-ready]", readySummary);
-    setText(this, "[data-detail-connection]", this.#state.connectionState);
+    setText(this, "[data-detail-connection]", connection.label);
     setText(
       this,
       "[data-detail-turn]",
@@ -245,20 +303,24 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
     setText(this, "[data-detail-local-state]", localStateLabel);
     setText(this, "[data-detail-remote-state]", remoteStateLabel);
     setText(this, "[data-title]", this.#state.gameTitle);
-    setText(this, "[data-connection-state]", this.#state.connectionState);
+    setText(this, "[data-connection-state]", connection.detail);
     setText(this, "[data-current-turn]", `#${this.#state.currentTurn}`);
     setText(this, "[data-turn-owner]", turnLabel(this.#state.turnOwner));
     setText(this, "[data-session-id]", this.#state.sessionId);
     setText(
       this,
       "[data-peer-id]",
-      this.#state.peerId || "Local peer ID will appear after register.",
-    );
+      this.#state.peerId
+        ? shortId(this.#state.peerId)
+        : "Local peer ID will appear after register.",
+    )?.setAttribute("title", this.#state.peerId);
     setText(
       this,
       "[data-remote-peer-id]",
-      this.#state.remotePeerId || "Remote peer not connected yet.",
-    );
+      this.#state.remotePeerId
+        ? shortId(this.#state.remotePeerId)
+        : "Remote peer not connected yet.",
+    )?.setAttribute("title", this.#state.remotePeerId);
     setText(this, "[data-ready-self]", selfReadyLabel);
     setText(this, "[data-ready-peer]", peerReadyLabel);
     setText(this, "[data-local-state]", localStateLabel);
