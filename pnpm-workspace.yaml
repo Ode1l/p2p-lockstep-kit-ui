@@ -5,8 +5,8 @@ allowBuilds:
   esbuild: false
 
 minimumReleaseAgeExclude:
-  - p2p-lockstep-kit-session@0.1.4
-  - p2p-lockstep-kit-session@0.1.5
+  - p2p-lockstep-kit-network
+  - p2p-lockstep-kit-session
 
 onlyBuiltDependencies:
   - esbuild

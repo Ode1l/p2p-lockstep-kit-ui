@@ -438,7 +438,7 @@ export class P2PLockstepAppElement extends HTMLElement {
   }
 
   #applySnapshot(snapshot: SessionSnapshot) {
-    const snapshotConnected = snapshot.connected || this.#state.connected;
+    const snapshotConnected = snapshot.connected;
     const readySelf = snapshot.localState === "ready";
     const readyPeer = snapshot.remoteState === "ready";
     const canReady = snapshotConnected && snapshot.localState === "idle";
