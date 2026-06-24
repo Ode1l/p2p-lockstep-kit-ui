@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "p2p-lockstep-kit-network": "^0.1.2",
-    "p2p-lockstep-kit-session": "^0.1.6",
+    "p2p-lockstep-kit-session": "^0.1.7",
     "qrcode": "^1.5.4"
   }
 }
