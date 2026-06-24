@@ -675,7 +675,9 @@ export class P2PLockstepAppElement extends HTMLElement {
 
   #handleReadyEvent = () => {
     this.#session?.actions.ready();
-    this.#showToast("Ready state sent.");
+    this.#showToast(
+      this.#state.readySelf ? "Ready state cleared." : "Ready state sent.",
+    );
   };
 
   #handleStartEvent = () => {

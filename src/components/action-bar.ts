@@ -50,13 +50,17 @@ export class P2PLockstepActionBarElement extends HTMLElement {
       readySelf,
       started,
     } = this.#state;
-    const primaryAction = canStart ? "start" : canReady ? "ready" : "";
+    const primaryAction = canStart
+      ? "start"
+      : readySelf || canReady
+        ? "ready"
+        : "";
     const primaryLabel = canStart
       ? "Start"
-      : canReady
-        ? "Ready"
-        : connected && readySelf
-          ? "Waiting for peer to start"
+      : readySelf
+        ? "Unready"
+        : canReady
+          ? "Ready"
           : connected
             ? "Waiting"
             : "Waiting for connection";
