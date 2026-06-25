@@ -21,6 +21,12 @@ const localAliases = [
 
 export default defineConfig({
   plugins: [tailwindcss()],
+  server: {
+    host: "0.0.0.0",
+  },
+  preview: {
+    host: "0.0.0.0",
+  },
   resolve: {
     alias: localAliases,
   },

@@ -1,5 +1,6 @@
 import { NetworkClient } from "p2p-lockstep-kit-network";
 import { createSession } from "p2p-lockstep-kit-session";
+import type { IGamePlugin } from "p2p-lockstep-kit-session";
 import type {
   AppState,
   DialogState,
@@ -281,6 +282,8 @@ export class P2PLockstepAppElement extends HTMLElement {
     this.#session = createSession(this.#network, this.#state.sessionId);
 
     this.#runtime = {
+      setGamePlugin: (plugin: IGamePlugin) =>
+        this.#session?.state.setGamePlugin(plugin),
       actions: {
         ready: () => this.#session?.actions.ready(),
         start: () => this.#session?.actions.start(),

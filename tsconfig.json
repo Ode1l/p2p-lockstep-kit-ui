@@ -16,5 +16,5 @@
     "noEmit": true,
     "baseUrl": "."
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "vite.config.ts"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "demos/**/*.ts", "vite.config.ts"]
 }

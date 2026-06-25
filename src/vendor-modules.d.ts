@@ -69,6 +69,35 @@ declare module "p2p-lockstep-kit-session" {
     onError?(error: { message: string; context?: unknown }): void;
   }
 
+  export type TurnEntry = {
+    turn: number;
+    player: "local" | "remote";
+    move?: unknown;
+  };
+
+  export interface GameState {
+    history: TurnEntry[];
+    localState: string;
+    remoteState: string;
+    turn: number;
+    lastStart: "local" | "remote" | null;
+  }
+
+  export interface ValidationResult {
+    valid: boolean;
+    reason?: string;
+  }
+
+  export interface IGamePlugin {
+    validateMove(move: unknown, gameState: GameState): ValidationResult;
+    checkWin(
+      gameState: GameState,
+      history: TurnEntry[],
+    ): "local" | "remote" | null;
+    initialize?(): void;
+    cleanup?(): void;
+  }
+
   export type SessionHandle = {
     observer: {
       subscribe(observer: IGameObserver): () => void;
@@ -76,6 +105,9 @@ declare module "p2p-lockstep-kit-session" {
     };
     net: {
       setPeerIds(ids: { local?: string | null; remote?: string | null }): void;
+    };
+    state: {
+      setGamePlugin(plugin: IGamePlugin): void;
     };
     actions: {
       ready(): void;

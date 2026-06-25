@@ -1,3 +1,5 @@
+import type { IGamePlugin } from "p2p-lockstep-kit-session";
+
 export type SessionStateView =
   | "idle"
   | "ready"
@@ -62,6 +64,7 @@ export type RuntimeObserver = {
 };
 
 export type LockstepRuntime = {
+  setGamePlugin(plugin: IGamePlugin): void;
   actions: {
     ready(): void;
     start(): void;
