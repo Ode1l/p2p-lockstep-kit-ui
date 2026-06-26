@@ -43,7 +43,14 @@ describe("gomoku rules", () => {
 
     expect(buildGomokuSnapshot(history).winner).toBe(1);
     expect(buildGomokuSnapshot(history).winningPlayer).toBe("local");
-    expect(createGomokuSessionPlugin().checkWin(gameState(history), history)).toBeNull();
+    expect(buildGomokuSnapshot(history).winningCells).toEqual([
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+      { x: 3, y: 0 },
+      { x: 4, y: 0 },
+    ]);
+    expect(createGomokuSessionPlugin().checkWin(gameState(history), history)).toBe("local");
   });
 
   it("detects vertical wins", () => {

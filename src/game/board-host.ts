@@ -40,8 +40,7 @@ export class P2PLockstepBoardHostElement extends HTMLElement {
   render() {
     this.className = "block h-full";
     this.innerHTML = `
-      <section class="relative h-full min-h-[15rem] overflow-hidden rounded-[1.4rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.72)] shadow-sm sm:min-h-[22rem] sm:rounded-[2.2rem] lg:min-h-[32rem] lg:rounded-[2rem]">
-        <div class="absolute inset-0 bg-[linear-gradient(45deg,rgba(28,28,26,0.035)_25%,transparent_25%,transparent_75%,rgba(28,28,26,0.035)_75%),linear-gradient(45deg,rgba(28,28,26,0.035)_25%,transparent_25%,transparent_75%,rgba(28,28,26,0.035)_75%)] bg-[position:0_0,1.5rem_1.5rem] bg-[size:3rem_3rem,3rem_3rem]"></div>
+      <section class="relative h-full min-h-[15rem] overflow-visible rounded-[1.4rem] bg-transparent sm:min-h-[22rem] sm:rounded-[2.2rem] lg:min-h-[32rem] lg:rounded-[2rem]">
         <div data-board-mount class="relative z-10 h-full"></div>
         <div
           data-placeholder

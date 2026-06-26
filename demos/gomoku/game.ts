@@ -15,6 +15,7 @@ export type GomokuSnapshot = {
   board: Board;
   winner: PlayerStone | null;
   winningPlayer: "local" | "remote" | null;
+  winningCells: Cell[];
   lastMove: (Cell & { stone: PlayerStone; owner: "local" | "remote" }) | null;
   nextStone: PlayerStone;
 };
@@ -59,24 +60,34 @@ export const stoneForTurn = (turn: number): PlayerStone =>
   turn % 2 === 1 ? 1 : 2;
 
 export const isWin = (board: Board, move: Cell & { stone: PlayerStone }) => {
-  for (const [dx, dy] of directions) {
-    let count = 1;
-    count += countDirection(board, move, dx, dy);
-    count += countDirection(board, move, -dx, -dy);
-    if (count >= 5) {
-      return true;
-    }
-  }
-  return false;
+  return findWinningCells(board, move).length > 0;
 };
 
-const countDirection = (
+export const findWinningCells = (
+  board: Board,
+  move: Cell & { stone: PlayerStone },
+): Cell[] => {
+  for (const [dx, dy] of directions) {
+    const backward = collectDirection(board, move, -dx, -dy).reverse();
+    const forward = collectDirection(board, move, dx, dy);
+    const line = [...backward, { x: move.x, y: move.y }, ...forward];
+
+    if (line.length >= 5) {
+      const moveIndex = backward.length;
+      const start = Math.min(Math.max(0, moveIndex - 4), line.length - 5);
+      return line.slice(start, start + 5);
+    }
+  }
+  return [];
+};
+
+const collectDirection = (
   board: Board,
   move: Cell & { stone: PlayerStone },
   dx: number,
   dy: number,
 ) => {
-  let count = 0;
+  const cells: Cell[] = [];
   let x = move.x + dx;
   let y = move.y + dy;
 
@@ -87,18 +98,19 @@ const countDirection = (
     y < GOMOKU_SIZE &&
     board[y][x] === move.stone
   ) {
-    count += 1;
+    cells.push({ x, y });
     x += dx;
     y += dy;
   }
 
-  return count;
+  return cells;
 };
 
 export const buildGomokuSnapshot = (history: TurnEntry[]): GomokuSnapshot => {
   const board = createEmptyBoard();
   let winner: PlayerStone | null = null;
   let winningPlayer: "local" | "remote" | null = null;
+  let winningCells: Cell[] = [];
   let lastMove: GomokuSnapshot["lastMove"] = null;
 
   for (const entry of history) {
@@ -119,9 +131,11 @@ export const buildGomokuSnapshot = (history: TurnEntry[]): GomokuSnapshot => {
       owner: entry.player,
     };
 
-    if (!winner && isWin(board, { ...entry.move, stone })) {
+    const cells = findWinningCells(board, { ...entry.move, stone });
+    if (!winner && cells.length > 0) {
       winner = stone;
       winningPlayer = entry.player;
+      winningCells = cells;
     }
   }
 
@@ -129,6 +143,7 @@ export const buildGomokuSnapshot = (history: TurnEntry[]): GomokuSnapshot => {
     board,
     winner,
     winningPlayer,
+    winningCells,
     lastMove,
     nextStone: stoneForTurn(history.length + 1),
   };
@@ -152,9 +167,7 @@ export const createGomokuSessionPlugin = (): IGamePlugin => ({
     }
     return canPlaceFromHistory(gameState.history, move);
   },
-  checkWin() {
-    // Keep the session in turn mode after a winner so Restart remains available.
-    // The demo board derives and displays the winner from history.
-    return null;
+  checkWin(_gameState: GameState, history: TurnEntry[]) {
+    return buildGomokuSnapshot(history).winningPlayer;
   },
 });

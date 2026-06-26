@@ -1,6 +1,4 @@
 import type { ActionBarState, GamePageState, StatusPanelState } from "../types";
-import type { P2PLockstepActionBarElement } from "../components/action-bar";
-import type { P2PLockstepStatusPanelElement } from "../components/status-panel";
 import type { P2PLockstepBoardHostElement } from "../game/board-host";
 
 const defaultState: GamePageState = {
@@ -54,16 +52,16 @@ export class P2PLockstepGamePageElement extends HTMLElement {
   render() {
     this.className = "block h-full";
     this.innerHTML = `
-      <section class="flex h-[calc(100svh-1.5rem)] flex-col gap-2.5 overflow-visible sm:h-auto sm:min-h-[calc(100svh-3rem)] sm:gap-4 lg:grid lg:h-full lg:min-h-[32rem] lg:grid-cols-[minmax(0,1fr)_20rem] lg:grid-rows-[auto_minmax(0,1fr)] lg:gap-5">
-        <aside class="relative z-40 order-1 lg:order-none lg:col-start-2 lg:row-start-1">
+      <section class="flex h-[calc(100svh-1.5rem)] flex-col items-center gap-2.5 overflow-visible sm:h-auto sm:min-h-[calc(100svh-3rem)] sm:gap-4 lg:grid lg:h-full lg:min-h-[32rem] lg:grid-cols-[minmax(0,1fr)_20rem] lg:grid-rows-[auto_minmax(0,1fr)] lg:items-stretch lg:gap-5">
+        <aside class="relative z-40 order-1 w-full max-w-[45rem] lg:order-none lg:col-start-2 lg:row-start-1 lg:max-w-none">
           <p2p-lockstep-status-panel></p2p-lockstep-status-panel>
         </aside>
 
-        <div class="order-2 min-h-0 flex-1 lg:order-none lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:h-full">
+        <div class="order-2 min-h-0 w-full max-w-[45rem] flex-1 lg:order-none lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:h-full lg:max-w-none">
           <p2p-lockstep-board-host></p2p-lockstep-board-host>
         </div>
 
-        <div class="order-3 shrink-0 lg:order-none lg:col-start-2 lg:row-start-2 lg:self-end">
+        <div class="order-3 w-full max-w-[45rem] shrink-0 lg:order-none lg:col-start-2 lg:row-start-2 lg:max-w-none lg:self-end">
           <div class="shrink-0 lg:sticky lg:bottom-6">
             <p2p-lockstep-action-bar></p2p-lockstep-action-bar>
           </div>

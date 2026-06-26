@@ -24,6 +24,7 @@ export const mountGomokuDemo = (options: {
   const boardView = new GomokuBoardView();
   let snapshot = options.runtime.observer.getSnapshot() ?? defaultSnapshot;
   let hover: Cell | null = null;
+  let dismissedWinnerKey: string | null = null;
 
   options.mount.replaceChildren(boardView.element);
   options.runtime.setGamePlugin(createGomokuSessionPlugin());
@@ -39,6 +40,13 @@ export const mountGomokuDemo = (options: {
       canMove && hover && gomoku.board[hover.y][hover.x] === 0
         ? gomoku.nextStone
         : null;
+    const winnerKey = gomoku.winningPlayer
+      ? `${gomoku.winningPlayer}:${snapshot.history.length}`
+      : null;
+
+    if (!winnerKey) {
+      dismissedWinnerKey = null;
+    }
 
     boardView.render({
       board: gomoku.board,
@@ -47,8 +55,23 @@ export const mountGomokuDemo = (options: {
       lastMove: gomoku.lastMove,
       disabled: !canMove,
       status: getStatusText(snapshot, gomoku.winningPlayer, gomoku.nextStone),
+      winnerNotice:
+        winnerKey && dismissedWinnerKey !== winnerKey
+          ? {
+              title: gomoku.winningPlayer === "local" ? "You win" : "Peer wins",
+              description: "Five in a row. Ready up to start the next match.",
+            }
+          : null,
     });
   };
+
+  boardView.onDismissWinner(() => {
+    const gomoku = buildGomokuSnapshot(snapshot.history);
+    dismissedWinnerKey = gomoku.winningPlayer
+      ? `${gomoku.winningPlayer}:${snapshot.history.length}`
+      : null;
+    render();
+  });
 
   boardView.onHover((cell) => {
     hover = cell;
@@ -68,6 +91,7 @@ export const mountGomokuDemo = (options: {
       return;
     }
 
+    hover = null;
     options.runtime.actions.move(createMove(cell));
   });
 
