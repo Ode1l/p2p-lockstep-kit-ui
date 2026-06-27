@@ -4,7 +4,7 @@ import type { IGamePlugin } from "p2p-lockstep-kit-session";
 import type {
   AppState,
   DialogState,
-  LockstepRuntime,
+  GameRuntime,
   RuntimeObserver,
   SessionSnapshot,
   SessionStateView,
@@ -89,7 +89,7 @@ export class P2PLockstepAppElement extends HTMLElement {
   #toast: (HTMLElement & { state: ToastState }) | null = null;
   #network = new NetworkClient();
   #session: SessionInstance | null = null;
-  #runtime: LockstepRuntime | null = null;
+  #runtime: GameRuntime | null = null;
   #toastTimer: number | null = null;
   #observer: InternalObserver | null = null;
 
@@ -231,7 +231,7 @@ export class P2PLockstepAppElement extends HTMLElement {
     }
   }
 
-  getRuntime() {
+  getRuntime(): GameRuntime | null {
     return this.#runtime;
   }
 
@@ -285,13 +285,7 @@ export class P2PLockstepAppElement extends HTMLElement {
       setGamePlugin: (plugin: IGamePlugin) =>
         this.#session?.state.setGamePlugin(plugin),
       actions: {
-        ready: () => this.#session?.actions.ready(),
-        start: () => this.#session?.actions.start(),
         move: (data: unknown) => this.#session?.actions.move(data),
-        undo: () => this.#session?.actions.undo(),
-        restart: () => this.#session?.actions.restart(),
-        approve: () => this.#session?.actions.approve(),
-        reject: () => this.#session?.actions.reject(),
       },
       observer: {
         subscribe: (observer: RuntimeObserver) =>
@@ -304,14 +298,6 @@ export class P2PLockstepAppElement extends HTMLElement {
         getSnapshot: () =>
           (this.#session?.observer.getSnapshot() as SessionSnapshot | null) ??
           null,
-      },
-      network: {
-        register: (url: string) => this.#network.register(url),
-        connect: (targetId: string) => this.#network.connect(targetId),
-        disconnect: () => this.#network.disconnect(),
-        getLocalPeerId: () => this.#network.getLocalPeerId(),
-        getRemotePeerId: () => this.#network.getRemotePeerId(),
-        peerState: () => this.#network.peerState(),
       },
     };
 

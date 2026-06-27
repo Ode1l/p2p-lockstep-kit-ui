@@ -60,7 +60,7 @@ run your own signaling endpoint:
 ```ts
 import "p2p-lockstep-kit-ui";
 import "p2p-lockstep-kit-ui/style.css";
-import type { LockstepRuntime, P2PLockstepAppElement } from "p2p-lockstep-kit-ui";
+import type { GameRuntime, P2PLockstepAppElement } from "p2p-lockstep-kit-ui";
 
 const app = document.querySelector("p2p-lockstep-app") as P2PLockstepAppElement | null;
 
@@ -70,7 +70,7 @@ if (!app) {
 
 await customElements.whenDefined("p2p-lockstep-app");
 
-const runtime = app.getRuntime() as LockstepRuntime | null;
+const runtime = app.getRuntime() as GameRuntime | null;
 const boardHost = app.getBoardHost();
 
 if (!runtime || !boardHost) {
@@ -102,17 +102,14 @@ The UI exposes the runtime from the app element:
 const runtime = app.getRuntime();
 ```
 
-Runtime actions:
+Game runtime actions:
 
 ```ts
-runtime.actions.ready();
-runtime.actions.start();
 runtime.actions.move(move);
-runtime.actions.undo();
-runtime.actions.restart();
-runtime.actions.approve();
-runtime.actions.reject();
 ```
+
+Ready, start, undo, restart, approve, and reject are owned by the UI shell
+controls. Game packages should not drive those controls directly.
 
 Runtime state:
 
@@ -125,7 +122,7 @@ runtime.observer.subscribe({
 });
 ```
 
-Network details are intentionally kept behind the UI runtime for the standard flow. Use `runtime.network` only when a game needs custom connection behavior.
+Network details are intentionally kept private to the UI shell for the standard flow.
 
 ## Package Design
 
@@ -154,7 +151,7 @@ pnpm typecheck
 pnpm build
 ```
 
-The local Vite config aliases `p2p-lockstep-kit-network` and `p2p-lockstep-kit-session` to sibling source folders for development. Published consumers resolve the package dependencies normally.
+The local Vite config aliases `p2p-lockstep-kit-ui`, `p2p-lockstep-kit-network`, and `p2p-lockstep-kit-session` to local source folders for development. Published consumers resolve the package dependencies normally.
 
 ## Cloudflare Pages Demo
 

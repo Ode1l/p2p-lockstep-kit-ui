@@ -27,16 +27,6 @@ const turnLabel = (owner: StatusPanelState["turnOwner"]) => {
   return "Waiting";
 };
 
-const shortId = (value: string) => {
-  if (!value) {
-    return "not set";
-  }
-  if (value.length <= 14) {
-    return value;
-  }
-  return `${value.slice(0, 7)}...${value.slice(-4)}`;
-};
-
 const readinessLabel = (
   player: "Me" | "Peer",
   state: StatusPanelState["localState"],
@@ -252,13 +242,13 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
                 <span>Session</span>
                 <span data-session-id class="lock-mono block min-w-0 truncate text-right text-[var(--lock-paper)]"></span>
               </p>
-              <p class="grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-2 text-[var(--lock-muted)]">
+              <p class="grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-start gap-2 text-[var(--lock-muted)]">
                 <span>Me</span>
-                <span data-peer-id class="lock-mono block min-w-0 truncate text-right text-[var(--lock-paper)]"></span>
+                <span data-peer-id class="lock-mono block min-w-0 break-all text-right text-[var(--lock-paper)]"></span>
               </p>
-              <p class="grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-2 text-[var(--lock-muted)]">
+              <p class="grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-start gap-2 text-[var(--lock-muted)]">
                 <span>Peer</span>
-                <span data-remote-peer-id class="lock-mono block min-w-0 truncate text-right text-[var(--lock-paper)]"></span>
+                <span data-remote-peer-id class="lock-mono block min-w-0 break-all text-right text-[var(--lock-paper)]"></span>
               </p>
             </div>
           </article>
@@ -296,8 +286,12 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
       `#${this.#state.currentTurn} / ${turnLabel(this.#state.turnOwner)}`,
     );
     setText(this, "[data-detail-session]", this.#state.sessionId);
-    setText(this, "[data-detail-peer]", shortId(this.#state.peerId));
-    setText(this, "[data-detail-remote]", shortId(this.#state.remotePeerId));
+    setText(this, "[data-detail-peer]", this.#state.peerId || "not set");
+    setText(
+      this,
+      "[data-detail-remote]",
+      this.#state.remotePeerId || "not set",
+    );
     setText(this, "[data-detail-ready-self]", selfReadyLabel);
     setText(this, "[data-detail-ready-peer]", peerReadyLabel);
     setText(this, "[data-detail-local-state]", localStateLabel);
@@ -310,16 +304,12 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
     setText(
       this,
       "[data-peer-id]",
-      this.#state.peerId
-        ? shortId(this.#state.peerId)
-        : "Local peer ID will appear after register.",
+      this.#state.peerId || "Local peer ID will appear after register.",
     )?.setAttribute("title", this.#state.peerId);
     setText(
       this,
       "[data-remote-peer-id]",
-      this.#state.remotePeerId
-        ? shortId(this.#state.remotePeerId)
-        : "Remote peer not connected yet.",
+      this.#state.remotePeerId || "Remote peer not connected yet.",
     )?.setAttribute("title", this.#state.remotePeerId);
     setText(this, "[data-ready-self]", selfReadyLabel);
     setText(this, "[data-ready-peer]", peerReadyLabel);

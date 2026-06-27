@@ -14,7 +14,13 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "noEmit": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "p2p-lockstep-kit-ui": ["./src/index.ts"],
+      "p2p-lockstep-kit-session": [
+        "../p2p-lockstep-kit-session/dist/session/index.d.ts"
+      ]
+    }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "demos/**/*.ts", "vite.config.ts"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "vite.config.ts"]
 }

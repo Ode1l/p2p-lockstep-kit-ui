@@ -33,14 +33,41 @@ declare module "p2p-lockstep-kit-session" {
     | "syncing"
     | "offline";
 
+  export type SessionEvent =
+    | "REMOTE_READY"
+    | "READY"
+    | "START"
+    | "REMOTE_START"
+    | "MOVE"
+    | "REMOTE_MOVE"
+    | "UNDO"
+    | "REMOTE_UNDO"
+    | "RESTART"
+    | "REMOTE_RESTART"
+    | "APPROVE"
+    | "REJECT"
+    | "GAME_OVER"
+    | "REJOIN"
+    | "SYNC"
+    | "SYNC_COMPLETE"
+    | "OFFLINE"
+    | "ONLINE";
+
   export type PendingAction = "undo" | "restart" | null;
+  export type PlayerLabel = "local" | "remote";
+
+  export type TurnEntry = {
+    turn: number;
+    player: PlayerLabel;
+    move?: unknown;
+  };
 
   export type GameStateSnapshot = {
     localState: SessionState;
     remoteState: SessionState;
     turn: number;
-    history: Array<{ turn: number; player: "local" | "remote"; move?: unknown }>;
-    lastStart: "local" | "remote" | null;
+    history: TurnEntry[];
+    lastStart: PlayerLabel | null;
     pendingAction: PendingAction;
     connected: boolean;
   };
@@ -58,7 +85,7 @@ declare module "p2p-lockstep-kit-session" {
       | "SYNC"
       | "ERROR";
     payload?: unknown;
-    from?: "local" | "remote";
+    from?: PlayerLabel;
     timestamp?: number;
   };
 
@@ -69,18 +96,12 @@ declare module "p2p-lockstep-kit-session" {
     onError?(error: { message: string; context?: unknown }): void;
   }
 
-  export type TurnEntry = {
-    turn: number;
-    player: "local" | "remote";
-    move?: unknown;
-  };
-
   export interface GameState {
     history: TurnEntry[];
     localState: string;
     remoteState: string;
     turn: number;
-    lastStart: "local" | "remote" | null;
+    lastStart: PlayerLabel | null;
   }
 
   export interface ValidationResult {
@@ -93,7 +114,7 @@ declare module "p2p-lockstep-kit-session" {
     checkWin(
       gameState: GameState,
       history: TurnEntry[],
-    ): "local" | "remote" | null;
+    ): PlayerLabel | null;
     initialize?(): void;
     cleanup?(): void;
   }

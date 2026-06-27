@@ -1,17 +1,29 @@
-import type { IGamePlugin } from "p2p-lockstep-kit-session";
+import type {
+  GameEvent,
+  GameStateSnapshot,
+  IGamePlugin,
+  PendingAction,
+  PlayerLabel,
+  SessionState,
+  TurnEntry,
+} from "p2p-lockstep-kit-session";
 
-export type SessionStateView =
-  | "idle"
-  | "ready"
-  | "could_start"
-  | "turn"
-  | "remote_turn"
-  | "approving"
-  | "waiting_approval"
-  | "syncing"
-  | "offline";
+export type {
+  GameEvent,
+  GameState,
+  GameStateSnapshot,
+  IGameObserver,
+  IGamePlugin,
+  PendingAction,
+  PlayerLabel,
+  SessionEvent,
+  SessionState,
+  TurnEntry,
+  ValidationResult,
+} from "p2p-lockstep-kit-session";
 
-export type PendingAction = "undo" | "restart" | null;
+export type SessionStateView = SessionState;
+
 export type TurnOwner = "me" | "peer" | null;
 export type AppScreen = "lobby" | "game";
 export type ConnectionState =
@@ -23,38 +35,8 @@ export type ConnectionState =
   | "offline"
   | "error";
 
-export type TurnEntry = {
-  turn: number;
-  player: "local" | "remote";
-  move?: unknown;
-};
-
-export type SessionSnapshot = {
-  localState: SessionStateView;
-  remoteState: SessionStateView;
-  turn: number;
-  history: TurnEntry[];
-  lastStart: "local" | "remote" | null;
-  pendingAction: PendingAction;
-  connected: boolean;
-};
-
-export type RuntimeEvent = {
-  type:
-    | "READY"
-    | "START"
-    | "MOVE"
-    | "GAME_OVER"
-    | "UNDO"
-    | "RESTART"
-    | "OFFLINE"
-    | "ONLINE"
-    | "SYNC"
-    | "ERROR";
-  payload?: unknown;
-  from?: "local" | "remote";
-  timestamp?: number;
-};
+export type SessionSnapshot = GameStateSnapshot;
+export type RuntimeEvent = GameEvent;
 
 export type RuntimeObserver = {
   onStateChange(snapshot: SessionSnapshot): void;
@@ -63,30 +45,18 @@ export type RuntimeObserver = {
   onError?(error: { message: string; context?: unknown }): void;
 };
 
-export type LockstepRuntime = {
+export type GameRuntime = {
   setGamePlugin(plugin: IGamePlugin): void;
   actions: {
-    ready(): void;
-    start(): void;
     move(data: unknown): void;
-    undo(): void;
-    restart(): void;
-    approve(): void;
-    reject(): void;
   };
   observer: {
     subscribe(observer: RuntimeObserver): () => void;
     getSnapshot(): SessionSnapshot | null;
   };
-  network: {
-    register(url: string): Promise<{ peerId: string }>;
-    connect(targetId: string): Promise<void>;
-    disconnect(): void;
-    getLocalPeerId(): string | null;
-    getRemotePeerId(): string | null;
-    peerState(): "passive" | "requesting" | "connected";
-  };
 };
+
+export type LockstepRuntime = GameRuntime;
 
 export type AppState = {
   screen: AppScreen;
@@ -113,7 +83,7 @@ export type AppState = {
   remoteState: SessionStateView;
   pendingAction: PendingAction;
   historyLength: number;
-  lastStart: "local" | "remote" | null;
+  lastStart: PlayerLabel | null;
   lastError: string;
 };
 

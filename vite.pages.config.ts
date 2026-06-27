@@ -5,6 +5,10 @@ import tailwindcss from "@tailwindcss/vite";
 
 const localAliases = [
   {
+    name: "p2p-lockstep-kit-ui",
+    path: new URL("./src/index.ts", import.meta.url),
+  },
+  {
     name: "p2p-lockstep-kit-network",
     path: new URL("../p2p-lockstep-kit-network/network/index.ts", import.meta.url),
   },
