@@ -117,6 +117,8 @@ export class P2PLockstepAppElement extends HTMLElement {
   #runtime: GameRuntime | null = null;
   #toastTimer: number | null = null;
   #observer: InternalObserver | null = null;
+  #pageWasHidden = false;
+  #resumeRecovery: Promise<void> | null = null;
 
   connectedCallback() {
     if (this.#ready) {
@@ -124,7 +126,7 @@ export class P2PLockstepAppElement extends HTMLElement {
     }
     this.#ready = true;
     const declaredTheme = isThemeMode(this.getAttribute("theme"))
-      ? this.getAttribute("theme") as ThemeMode
+      ? (this.getAttribute("theme") as ThemeMode)
       : "light";
     const theme = readStoredTheme() ?? declaredTheme;
     this.#state = defaultState({
@@ -189,6 +191,8 @@ export class P2PLockstepAppElement extends HTMLElement {
       "lockstep-dialog-cancel",
       this.#handleDialogCancelEvent as EventListener,
     );
+    document.addEventListener("visibilitychange", this.#handleVisibilityChange);
+    window.addEventListener("pageshow", this.#handlePageShow);
     this.#initializeSession();
     void this.#bootstrapFromLocation();
   }
@@ -246,6 +250,11 @@ export class P2PLockstepAppElement extends HTMLElement {
       "lockstep-dialog-cancel",
       this.#handleDialogCancelEvent as EventListener,
     );
+    document.removeEventListener(
+      "visibilitychange",
+      this.#handleVisibilityChange,
+    );
+    window.removeEventListener("pageshow", this.#handlePageShow);
     if (this.#toastTimer) {
       window.clearTimeout(this.#toastTimer);
       this.#toastTimer = null;
@@ -277,6 +286,10 @@ export class P2PLockstepAppElement extends HTMLElement {
 
   getRuntime(): GameRuntime | null {
     return this.#runtime;
+  }
+
+  resumeConnection() {
+    this.#recoverAfterPageResume();
   }
 
   getBoardHost() {
@@ -383,6 +396,50 @@ export class P2PLockstepAppElement extends HTMLElement {
     if (shared.peerId) {
       await this.#connect(shared.peerId, true);
     }
+  }
+
+  #recoverAfterPageResume() {
+    if (this.#resumeRecovery || !this.isConnected) {
+      return;
+    }
+
+    const shared = readShareLocation();
+    const remotePeerId =
+      this.#network.getRemotePeerId() ||
+      this.#state.remotePeerId ||
+      shared.peerId;
+
+    if (
+      this.#state.screen !== "game" ||
+      !this.#state.signalUrl ||
+      !remotePeerId
+    ) {
+      return;
+    }
+
+    this.#resumeRecovery = this.#reconnectAfterPageResume(remotePeerId).finally(
+      () => {
+        this.#resumeRecovery = null;
+      },
+    );
+  }
+
+  async #reconnectAfterPageResume(remotePeerId: string) {
+    this.#patchState({
+      targetId: remotePeerId,
+      remotePeerId,
+      connected: false,
+      connecting: true,
+      connectionState: "connecting",
+      lastError: "",
+    });
+    this.#showToast("Restoring peer connection.");
+
+    await this.#register(this.#state.signalUrl, true);
+    if (!this.#network.getLocalPeerId()) {
+      return;
+    }
+    await this.#connect(remotePeerId, true);
   }
 
   async #register(signalUrl: string, quiet = false) {
@@ -713,7 +770,10 @@ export class P2PLockstepAppElement extends HTMLElement {
   };
 
   #handleThemeChangeEvent = (event: CustomEvent<{ theme: ThemeMode }>) => {
-    if (!isThemeMode(event.detail.theme) || event.detail.theme === this.#state.theme) {
+    if (
+      !isThemeMode(event.detail.theme) ||
+      event.detail.theme === this.#state.theme
+    ) {
       return;
     }
     const theme = event.detail.theme;
@@ -756,5 +816,23 @@ export class P2PLockstepAppElement extends HTMLElement {
     this.#dialogState = defaultDialog;
     this.#syncUi();
     this.#showToast("Request rejected.");
+  };
+
+  #handleVisibilityChange = () => {
+    if (document.visibilityState === "hidden") {
+      this.#pageWasHidden = true;
+      return;
+    }
+    if (!this.#pageWasHidden) {
+      return;
+    }
+    this.#pageWasHidden = false;
+    this.#recoverAfterPageResume();
+  };
+
+  #handlePageShow = (event: PageTransitionEvent) => {
+    if (event.persisted) {
+      this.#recoverAfterPageResume();
+    }
   };
 }
