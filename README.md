@@ -4,11 +4,12 @@ Web Components UI shell for `p2p-lockstep-kit-network` and `p2p-lockstep-kit-ses
 
 The UI package owns the generic app surface:
 
-- lobby page
+- direct peer pairing page
 - signaling registration
-- peer connection
+- Peer ID input and connection
 - share link and QR code
 - game page shell
+- local and remote identity, connection, readiness, session, turn, and timeline status
 - ready / start / undo / restart controls
 - request dialogs and toast messages
 - board host container
@@ -28,7 +29,10 @@ p2p-lockstep-kit-network
 p2p-lockstep-kit-session
 ```
 
-Game projects do not need to instantiate those packages directly for the common lobby/game flow.
+Game projects do not need to instantiate those packages directly for the common pairing/game flow.
+
+There is no room browser, lobby, or matchmaking model. One player shares a Peer ID or
+share link and the other player connects directly.
 
 ## Basic Usage
 
@@ -41,8 +45,15 @@ import "p2p-lockstep-kit-ui/style.css";
 <p2p-lockstep-app
   game-title="Gomoku"
   session-id="gomoku"
+  theme="dark"
 ></p2p-lockstep-app>
 ```
+
+Omit `theme="dark"` to use the default light theme. Players can switch between
+Day and Night modes from the `...` settings menu; the choice is stored locally and
+restored on later visits. Both themes use public `--lock-*` tokens, so game boards
+can inherit the same colors without targeting the UI package's internal markup or
+utility classes.
 
 The default signaling server is `wss://signal.jiahengli.xyz`. Override it only when you
 run your own signaling endpoint:
@@ -133,7 +144,7 @@ game project
   -> sends moves through p2p-lockstep-app.getRuntime().actions
 
 p2p-lockstep-kit-ui
-  -> owns lobby/game pages and common controls
+  -> owns pairing/game pages and common controls
   -> creates NetworkClient
   -> creates session
   -> maps session snapshots into UI state

@@ -2,6 +2,7 @@ import type { ActionBarState, GamePageState, StatusPanelState } from "../types";
 import type { P2PLockstepBoardHostElement } from "../game/board-host";
 
 const defaultState: GamePageState = {
+  theme: "light",
   gameTitle: "P2P Lockstep",
   peerId: "",
   remotePeerId: "",
@@ -20,6 +21,9 @@ const defaultState: GamePageState = {
   remoteState: "idle",
   pendingAction: null,
   sessionId: "default-session",
+  historyLength: 0,
+  lastStart: null,
+  lastError: "",
 };
 
 export class P2PLockstepGamePageElement extends HTMLElement {
@@ -84,6 +88,7 @@ export class P2PLockstepGamePageElement extends HTMLElement {
     }
 
     this.#statusPanel.state = {
+      theme: this.#state.theme,
       gameTitle: this.#state.gameTitle,
       peerId: this.#state.peerId,
       remotePeerId: this.#state.remotePeerId,
@@ -97,6 +102,9 @@ export class P2PLockstepGamePageElement extends HTMLElement {
       readyPeer: this.#state.readyPeer,
       pendingAction: this.#state.pendingAction,
       sessionId: this.#state.sessionId,
+      historyLength: this.#state.historyLength,
+      lastStart: this.#state.lastStart,
+      lastError: this.#state.lastError,
     };
 
     this.#actionBar.state = {

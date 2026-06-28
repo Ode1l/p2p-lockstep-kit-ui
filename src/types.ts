@@ -25,7 +25,8 @@ export type {
 export type SessionStateView = SessionState;
 
 export type TurnOwner = "me" | "peer" | null;
-export type AppScreen = "lobby" | "game";
+export type AppScreen = "pairing" | "game";
+export type ThemeMode = "light" | "dark";
 export type ConnectionState =
   | "idle"
   | "registering"
@@ -60,6 +61,7 @@ export type LockstepRuntime = GameRuntime;
 
 export type AppState = {
   screen: AppScreen;
+  theme: ThemeMode;
   gameTitle: string;
   sessionId: string;
   signalUrl: string;
@@ -93,8 +95,9 @@ export type SharePanelState = {
   shareUrl: string;
 };
 
-export type LobbyPageState = Pick<
+export type PairingPageState = Pick<
   AppState,
+  | "theme"
   | "gameTitle"
   | "signalUrl"
   | "targetId"
@@ -107,6 +110,7 @@ export type LobbyPageState = Pick<
 
 export type StatusPanelState = Pick<
   AppState,
+  | "theme"
   | "gameTitle"
   | "peerId"
   | "remotePeerId"
@@ -120,6 +124,9 @@ export type StatusPanelState = Pick<
   | "readyPeer"
   | "pendingAction"
   | "sessionId"
+  | "historyLength"
+  | "lastStart"
+  | "lastError"
 >;
 
 export type ActionBarState = Pick<
@@ -136,6 +143,7 @@ export type ActionBarState = Pick<
 
 export type GamePageState = Pick<
   AppState,
+  | "theme"
   | "gameTitle"
   | "peerId"
   | "remotePeerId"
@@ -154,6 +162,9 @@ export type GamePageState = Pick<
   | "remoteState"
   | "pendingAction"
   | "sessionId"
+  | "historyLength"
+  | "lastStart"
+  | "lastError"
 >;
 
 export type DialogState = {

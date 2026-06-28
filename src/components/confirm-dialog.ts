@@ -42,7 +42,7 @@ export class P2PLockstepConfirmDialogElement extends HTMLElement {
     const { open } = this.#state;
     this.className = open ? "fixed inset-0 z-50 block" : "hidden";
     this.innerHTML = `
-      <div data-overlay class="absolute inset-0 bg-[rgba(7,6,4,0.76)] backdrop-blur-sm"></div>
+      <div data-overlay class="absolute inset-0 bg-[var(--lock-overlay)] backdrop-blur-sm"></div>
       <div class="relative flex min-h-full items-end justify-center p-4 sm:items-center">
         <section class="lock-panel w-full max-w-md rounded-[2rem] p-6">
           <div class="space-y-3">

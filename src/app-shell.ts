@@ -8,19 +8,22 @@ import type {
   RuntimeObserver,
   SessionSnapshot,
   SessionStateView,
+  ThemeMode,
   ToastState,
 } from "./types";
 import { DEFAULT_SIGNAL_URL } from "./config";
 import { readShareLocation } from "./utils/share";
-import type { P2PLockstepLobbyPageElement } from "./pages/lobby-page";
+import type { P2PLockstepPairingPageElement } from "./pages/pairing-page";
 import type { P2PLockstepGamePageElement } from "./pages/game-page";
 
 const defaultState = (attrs?: {
   gameTitle?: string;
   sessionId?: string;
   signalUrl?: string;
+  theme?: ThemeMode;
 }): AppState => ({
-  screen: "lobby",
+  screen: "pairing",
+  theme: attrs?.theme || "light",
   gameTitle: attrs?.gameTitle || "P2P Lockstep",
   sessionId: attrs?.sessionId || "default-session",
   signalUrl: attrs?.signalUrl || DEFAULT_SIGNAL_URL,
@@ -47,6 +50,28 @@ const defaultState = (attrs?: {
   lastStart: null,
   lastError: "",
 });
+
+const THEME_STORAGE_KEY = "p2p-lockstep-theme";
+
+const isThemeMode = (value: string | null): value is ThemeMode =>
+  value === "light" || value === "dark";
+
+const readStoredTheme = (): ThemeMode | null => {
+  try {
+    const value = window.localStorage.getItem(THEME_STORAGE_KEY);
+    return isThemeMode(value) ? value : null;
+  } catch {
+    return null;
+  }
+};
+
+const storeTheme = (theme: ThemeMode) => {
+  try {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch {
+    // Theme persistence is optional when storage is unavailable.
+  }
+};
 
 const defaultDialog: DialogState = {
   open: false,
@@ -76,14 +101,14 @@ type InternalObserver = RuntimeObserver & {
 
 export class P2PLockstepAppElement extends HTMLElement {
   static get observedAttributes() {
-    return ["game-title", "session-id", "signal-url"];
+    return ["game-title", "session-id", "signal-url", "theme"];
   }
 
   #ready = false;
   #state: AppState = defaultState();
   #dialogState: DialogState = defaultDialog;
   #toastState: ToastState = defaultToast;
-  #lobbyPage: P2PLockstepLobbyPageElement | null = null;
+  #pairingPage: P2PLockstepPairingPageElement | null = null;
   #gamePage: P2PLockstepGamePageElement | null = null;
   #dialog: (HTMLElement & { state: DialogState }) | null = null;
   #toast: (HTMLElement & { state: ToastState }) | null = null;
@@ -98,11 +123,19 @@ export class P2PLockstepAppElement extends HTMLElement {
       return;
     }
     this.#ready = true;
+    const declaredTheme = isThemeMode(this.getAttribute("theme"))
+      ? this.getAttribute("theme") as ThemeMode
+      : "light";
+    const theme = readStoredTheme() ?? declaredTheme;
     this.#state = defaultState({
       gameTitle: this.getAttribute("game-title") ?? undefined,
       sessionId: this.getAttribute("session-id") ?? undefined,
       signalUrl: this.getAttribute("signal-url") ?? undefined,
+      theme,
     });
+    if (this.getAttribute("theme") !== theme) {
+      this.setAttribute("theme", theme);
+    }
     this.render();
     this.addEventListener(
       "lockstep-register",
@@ -127,6 +160,10 @@ export class P2PLockstepAppElement extends HTMLElement {
     this.addEventListener(
       "lockstep-copy-share",
       this.#handleCopyShareEvent as EventListener,
+    );
+    this.addEventListener(
+      "lockstep-theme-change",
+      this.#handleThemeChangeEvent as EventListener,
     );
     this.addEventListener(
       "lockstep-ready",
@@ -182,6 +219,10 @@ export class P2PLockstepAppElement extends HTMLElement {
       this.#handleCopyShareEvent as EventListener,
     );
     this.removeEventListener(
+      "lockstep-theme-change",
+      this.#handleThemeChangeEvent as EventListener,
+    );
+    this.removeEventListener(
       "lockstep-ready",
       this.#handleReadyEvent as EventListener,
     );
@@ -229,6 +270,9 @@ export class P2PLockstepAppElement extends HTMLElement {
     if (name === "signal-url" && newValue) {
       this.#patchState({ signalUrl: newValue });
     }
+    if (name === "theme" && isThemeMode(newValue)) {
+      this.#patchState({ theme: newValue });
+    }
   }
 
   getRuntime(): GameRuntime | null {
@@ -243,24 +287,24 @@ export class P2PLockstepAppElement extends HTMLElement {
     this.className =
       "block min-h-svh bg-[var(--lock-bg-deep)] text-[var(--lock-paper)]";
     this.innerHTML = `
-      <div class="relative min-h-svh overflow-hidden bg-[radial-gradient(circle_at_18%_8%,rgba(255,255,255,0.85),transparent_28%),linear-gradient(145deg,var(--lock-bg),var(--lock-bg-deep))]">
-        <div class="pointer-events-none absolute inset-0 hidden opacity-[0.45] sm:block bg-[linear-gradient(rgba(28,28,26,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(28,28,26,0.03)_1px,transparent_1px)] bg-[size:3.25rem_3.25rem]"></div>
+      <div class="lock-app-bg relative min-h-svh overflow-hidden">
+        <div class="lock-grid-bg pointer-events-none absolute inset-0 hidden opacity-[0.45] sm:block"></div>
 
         <main class="relative mx-auto flex min-h-svh max-w-7xl flex-col px-3 py-3 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
-          <header class="lock-enter mb-5 hidden flex-wrap items-center justify-between gap-4 rounded-[1.25rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.72)] px-4 py-3 shadow-sm backdrop-blur-xl sm:flex">
+          <header class="lock-panel lock-enter mb-5 hidden flex-wrap items-center justify-between gap-4 rounded-[1.25rem] px-4 py-3 sm:flex">
             <div class="flex items-center gap-3">
               <div>
-                <p class="text-sm font-semibold text-[var(--lock-paper)]">P2P Lockstep</p>
-                <p class="text-xs text-[var(--lock-muted)]">private match console</p>
+                <p class="text-sm font-semibold text-[var(--lock-paper)]">${this.#state.gameTitle}</p>
+                <p class="text-xs text-[var(--lock-muted)]">direct peer match</p>
               </div>
             </div>
-            <div data-shell-connection-state class="rounded-full border border-[var(--lock-border)] bg-[rgba(255,255,252,0.78)] px-3 py-1 text-xs uppercase tracking-[0.16em] text-[var(--lock-muted)]">
+            <div data-shell-connection-state class="lock-control rounded-full border px-3 py-1 text-xs uppercase tracking-[0.16em] text-[var(--lock-muted)]">
               ${this.#state.connectionState}
             </div>
           </header>
 
           <div class="flex-1 lock-enter">
-            <p2p-lockstep-lobby-page ${this.#state.screen === "lobby" ? "" : "hidden"}></p2p-lockstep-lobby-page>
+            <p2p-lockstep-pairing-page ${this.#state.screen === "pairing" ? "" : "hidden"}></p2p-lockstep-pairing-page>
             <p2p-lockstep-game-page ${this.#state.screen === "game" ? "" : "hidden"}></p2p-lockstep-game-page>
           </div>
         </main>
@@ -270,7 +314,7 @@ export class P2PLockstepAppElement extends HTMLElement {
       </div>
     `;
 
-    this.#lobbyPage = this.querySelector("p2p-lockstep-lobby-page");
+    this.#pairingPage = this.querySelector("p2p-lockstep-pairing-page");
     this.#gamePage = this.querySelector("p2p-lockstep-game-page");
     this.#dialog = this.querySelector("p2p-lockstep-confirm-dialog");
     this.#toast = this.querySelector("p2p-lockstep-toast-message");
@@ -399,6 +443,7 @@ export class P2PLockstepAppElement extends HTMLElement {
       connecting: true,
       connectionState: "connecting",
       screen: "game",
+      lastError: "",
     });
     this.#session?.net.setPeerIds({
       local: this.#state.peerId || null,
@@ -522,7 +567,7 @@ export class P2PLockstepAppElement extends HTMLElement {
       connected,
       connecting: peerState === "requesting",
       connectionState,
-      screen: hasPeerActivity ? "game" : "lobby",
+      screen: hasPeerActivity ? "game" : "pairing",
     });
 
     if (connected) {
@@ -545,15 +590,15 @@ export class P2PLockstepAppElement extends HTMLElement {
   }
 
   #syncUi() {
-    const lobby = this.#lobbyPage;
+    const pairing = this.#pairingPage;
     const game = this.#gamePage;
     const dialog = this.#dialog;
     const toast = this.#toast;
-    if (!lobby || !game || !dialog || !toast) {
+    if (!pairing || !game || !dialog || !toast) {
       return;
     }
 
-    lobby.toggleAttribute("hidden", this.#state.screen !== "lobby");
+    pairing.toggleAttribute("hidden", this.#state.screen !== "pairing");
     game.toggleAttribute("hidden", this.#state.screen !== "game");
     const shellConnectionState = this.querySelector<HTMLElement>(
       "[data-shell-connection-state]",
@@ -562,7 +607,8 @@ export class P2PLockstepAppElement extends HTMLElement {
       shellConnectionState.textContent = this.#state.connectionState;
     }
 
-    lobby.state = {
+    pairing.state = {
+      theme: this.#state.theme,
       gameTitle: this.#state.gameTitle,
       signalUrl: this.#state.signalUrl,
       targetId: this.#state.targetId,
@@ -574,6 +620,7 @@ export class P2PLockstepAppElement extends HTMLElement {
     };
 
     game.state = {
+      theme: this.#state.theme,
       gameTitle: this.#state.gameTitle,
       peerId: this.#state.peerId,
       remotePeerId: this.#state.remotePeerId,
@@ -592,6 +639,9 @@ export class P2PLockstepAppElement extends HTMLElement {
       remoteState: this.#state.remoteState,
       pendingAction: this.#state.pendingAction,
       sessionId: this.#state.sessionId,
+      historyLength: this.#state.historyLength,
+      lastStart: this.#state.lastStart,
+      lastError: this.#state.lastError,
     };
 
     dialog.state = this.#dialogState;
@@ -624,13 +674,13 @@ export class P2PLockstepAppElement extends HTMLElement {
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(value);
-        this.#showToast("Share link copied.");
+        this.#showToast("Copied to clipboard.");
         return;
       }
     } catch {
       // fall through to prompt
     }
-    window.prompt("Copy share link", value);
+    window.prompt("Copy value", value);
   }
 
   #handleRegisterEvent = (event: CustomEvent<{ signalUrl: string }>) => {
@@ -660,6 +710,16 @@ export class P2PLockstepAppElement extends HTMLElement {
 
   #handleCopyShareEvent = (event: CustomEvent<{ value: string }>) => {
     void this.#copyText(event.detail.value);
+  };
+
+  #handleThemeChangeEvent = (event: CustomEvent<{ theme: ThemeMode }>) => {
+    if (!isThemeMode(event.detail.theme) || event.detail.theme === this.#state.theme) {
+      return;
+    }
+    const theme = event.detail.theme;
+    storeTheme(theme);
+    this.setAttribute("theme", theme);
+    this.#showToast(`${theme === "dark" ? "Night" : "Day"} mode enabled.`);
   };
 
   #handleReadyEvent = () => {

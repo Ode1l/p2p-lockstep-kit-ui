@@ -1,7 +1,9 @@
 import type { StatusPanelState } from "../types";
 import { setText } from "../utils/dom";
+import { emit } from "../utils/events";
 
 const defaultState: StatusPanelState = {
+  theme: "light",
   gameTitle: "P2P Lockstep",
   peerId: "",
   remotePeerId: "",
@@ -15,6 +17,9 @@ const defaultState: StatusPanelState = {
   readyPeer: false,
   pendingAction: null,
   sessionId: "default-session",
+  historyLength: 0,
+  lastStart: null,
+  lastError: "",
 };
 
 const turnLabel = (owner: StatusPanelState["turnOwner"]) => {
@@ -125,7 +130,12 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
       return;
     }
     this.#ready = true;
+    this.addEventListener("click", this.#handleClick);
     this.render();
+  }
+
+  disconnectedCallback() {
+    this.removeEventListener("click", this.#handleClick);
   }
 
   set state(value: StatusPanelState) {
@@ -150,6 +160,13 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
     const localStateLabel = stateLabel("Local", this.#state.localState);
     const remoteStateLabel = stateLabel("Remote", this.#state.remoteState);
     const readySummary = `${selfReadyLabel} / ${peerReadyLabel}`;
+    const starterLabel =
+      this.#state.lastStart === "local"
+        ? "You"
+        : this.#state.lastStart === "remote"
+          ? "Peer"
+          : "Not started";
+    const timelineSummary = `${this.#state.historyLength} move${this.#state.historyLength === 1 ? "" : "s"} / ${starterLabel}`;
 
     this.className = "block";
     this.innerHTML = `
@@ -172,27 +189,45 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
           <details class="group shrink-0">
             <summary
               aria-label="Match details"
-              class="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full border border-[var(--lock-border)] bg-[rgba(255,255,252,0.7)] text-base font-semibold leading-none text-[var(--lock-muted)] transition hover:border-[var(--lock-border-strong)] hover:bg-white [&::-webkit-details-marker]:hidden"
+              class="lock-control flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full border border-[var(--lock-border)] text-base font-semibold leading-none text-[var(--lock-muted)] transition hover:border-[var(--lock-border-strong)] [&::-webkit-details-marker]:hidden"
             >
               ...
             </summary>
-            <div class="absolute inset-x-0 top-full z-50 mt-2 max-h-[calc(100svh-6rem)] overflow-auto rounded-[1.35rem] border border-[var(--lock-border-strong)] bg-[rgba(255,255,252,0.96)] p-3.5 shadow-2xl shadow-black/15 backdrop-blur-xl lg:inset-auto lg:right-0 lg:w-[min(22rem,calc(100vw-1.5rem))]">
+            <div class="lock-surface-strong absolute inset-x-0 top-full z-50 mt-2 max-h-[calc(100svh-6rem)] overflow-auto rounded-[1.35rem] border border-[var(--lock-border-strong)] p-3.5 shadow-2xl shadow-black/15 backdrop-blur-xl lg:inset-auto lg:right-0 lg:w-[min(22rem,calc(100vw-1.5rem))]">
               <div class="grid grid-cols-2 gap-2">
-                <article class="rounded-[1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.54)] p-3">
+                <article class="lock-card rounded-[1rem] border border-[var(--lock-border)] p-3">
                   <p class="text-[0.6rem] uppercase tracking-[0.18em] text-[var(--lock-dim)]">Connection</p>
                   <p data-detail-connection class="mt-1.5 text-sm font-semibold text-[var(--lock-paper)]"></p>
                 </article>
-                <article class="rounded-[1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.54)] p-3">
+                <article class="lock-card rounded-[1rem] border border-[var(--lock-border)] p-3">
                   <p class="text-[0.6rem] uppercase tracking-[0.18em] text-[var(--lock-dim)]">Turn</p>
                   <p data-detail-turn class="mt-1.5 text-sm font-semibold text-[var(--lock-paper)]"></p>
                 </article>
               </div>
 
-              <div class="mt-2 rounded-[1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.54)] p-3">
+              <div class="lock-card mt-2 rounded-[1rem] border border-[var(--lock-border)] p-3">
                 <p class="text-[0.6rem] uppercase tracking-[0.18em] text-[var(--lock-dim)]">Identity</p>
                 <p class="lock-mono mt-1.5 break-all text-xs text-[var(--lock-muted)]">Session: <span data-detail-session class="text-[var(--lock-paper)]"></span></p>
                 <p class="lock-mono mt-1.5 break-all text-xs text-[var(--lock-muted)]">Me: <span data-detail-peer class="text-[var(--lock-paper)]"></span></p>
                 <p class="lock-mono mt-1.5 break-all text-xs text-[var(--lock-muted)]">Peer: <span data-detail-remote class="text-[var(--lock-paper)]"></span></p>
+              </div>
+
+              <div class="lock-card mt-2 rounded-[1rem] border border-[var(--lock-border)] p-3">
+                <p class="text-[0.6rem] uppercase tracking-[0.18em] text-[var(--lock-dim)]">Timeline</p>
+                <p data-detail-timeline class="mt-1.5 text-sm font-semibold text-[var(--lock-paper)]"></p>
+                ${
+                  this.#state.lastError
+                    ? `<p data-detail-error class="mt-1.5 break-words text-xs text-[var(--lock-rose)]"></p>`
+                    : ""
+                }
+              </div>
+
+              <div class="lock-card mt-2 rounded-[1rem] border border-[var(--lock-border)] p-3">
+                <p class="text-[0.6rem] uppercase tracking-[0.18em] text-[var(--lock-dim)]">Appearance</p>
+                <div class="mt-2 grid grid-cols-2 gap-2" role="group" aria-label="Color mode">
+                  <button type="button" data-theme-mode="light" class="lock-theme-option rounded-xl px-3 py-2 text-xs font-semibold" aria-label="Use day mode" aria-pressed="${this.#state.theme === "light"}">Day</button>
+                  <button type="button" data-theme-mode="dark" class="lock-theme-option rounded-xl px-3 py-2 text-xs font-semibold" aria-label="Use night mode" aria-pressed="${this.#state.theme === "dark"}">Night</button>
+                </div>
               </div>
 
               <div class="mt-2 flex flex-wrap gap-1.5">
@@ -202,7 +237,7 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
                 <span data-detail-remote-state class="rounded-full border border-[var(--lock-border)] px-2.5 py-1 text-[0.68rem] text-[var(--lock-muted)]"></span>
                 ${
                   pendingAction
-                    ? `<span class="rounded-full border border-[var(--lock-border-strong)] bg-[rgba(201,149,67,0.14)] px-2.5 py-1 text-[0.68rem] text-[var(--lock-bronze-bright)]">Pending ${pendingAction}</span>`
+                    ? `<span class="rounded-full border border-[var(--lock-border-strong)] bg-[var(--lock-pending-bg)] px-2.5 py-1 text-[0.68rem] text-[var(--lock-bronze-bright)]">Pending ${pendingAction}</span>`
                     : ""
                 }
               </div>
@@ -211,31 +246,44 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
         </div>
 
         <div class="hidden gap-2 lg:grid">
-          <article class="rounded-[1.15rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.52)] p-2.5">
+          <article class="lock-card rounded-[1.15rem] border border-[var(--lock-border)] p-2.5">
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">
                 <p class="text-[0.62rem] uppercase tracking-[0.2em] text-[var(--lock-dim)]">Match</p>
                 <p data-title class="mt-1.5 truncate text-xl font-semibold leading-none tracking-[-0.035em] text-[var(--lock-paper)]"></p>
+                <p data-match-meta class="mt-1.5 text-xs text-[var(--lock-muted)]"></p>
               </div>
-              <span class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full ${connection.tone}"></span>
+              <div class="flex shrink-0 items-center gap-2">
+                <span class="h-2.5 w-2.5 rounded-full ${connection.tone}"></span>
+                <details class="group relative">
+                  <summary aria-label="Appearance settings" class="lock-control flex h-7 w-7 cursor-pointer list-none items-center justify-center rounded-full border border-[var(--lock-border)] text-xs font-semibold leading-none text-[var(--lock-muted)] [&::-webkit-details-marker]:hidden">...</summary>
+                  <div class="lock-surface-strong absolute right-0 z-50 mt-2 w-52 rounded-2xl border border-[var(--lock-border-strong)] p-3 shadow-xl shadow-black/15">
+                    <p class="text-[0.6rem] uppercase tracking-[0.18em] text-[var(--lock-dim)]">Appearance</p>
+                    <div class="mt-2 grid grid-cols-2 gap-2" role="group" aria-label="Color mode">
+                      <button type="button" data-theme-mode="light" class="lock-theme-option rounded-xl px-3 py-2 text-xs font-semibold" aria-label="Use day mode" aria-pressed="${this.#state.theme === "light"}">Day</button>
+                      <button type="button" data-theme-mode="dark" class="lock-theme-option rounded-xl px-3 py-2 text-xs font-semibold" aria-label="Use night mode" aria-pressed="${this.#state.theme === "dark"}">Night</button>
+                    </div>
+                  </div>
+                </details>
+              </div>
             </div>
           </article>
 
           <div class="grid grid-cols-2 gap-2">
-            <article class="rounded-[1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.52)] p-2.5">
+            <article class="lock-card rounded-[1rem] border border-[var(--lock-border)] p-2.5">
               <p class="text-[0.58rem] uppercase tracking-[0.2em] text-[var(--lock-dim)]">Connection</p>
               <p class="mt-1.5 text-sm font-semibold text-[var(--lock-paper)]">${connection.label}</p>
               <p data-connection-state class="mt-0.5 truncate text-xs text-[var(--lock-muted)]"></p>
             </article>
 
-            <article class="rounded-[1rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.52)] p-2.5">
+            <article class="lock-card rounded-[1rem] border border-[var(--lock-border)] p-2.5">
               <p class="text-[0.58rem] uppercase tracking-[0.2em] text-[var(--lock-dim)]">Turn</p>
               <p data-current-turn class="mt-1.5 text-sm font-semibold text-[var(--lock-paper)]"></p>
               <p data-turn-owner class="mt-0.5 truncate text-xs text-[var(--lock-muted)]"></p>
             </article>
           </div>
 
-          <article class="min-w-0 overflow-hidden rounded-[1.15rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.52)] p-2.5">
+          <article class="lock-card min-w-0 overflow-hidden rounded-[1.15rem] border border-[var(--lock-border)] p-2.5">
             <p class="text-[0.62rem] uppercase tracking-[0.2em] text-[var(--lock-dim)]">Identity</p>
             <div class="mt-2 grid gap-1.5 text-xs">
               <p class="grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-2 text-[var(--lock-muted)]">
@@ -253,7 +301,16 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
             </div>
           </article>
 
-          <article class="rounded-[1.15rem] border border-[var(--lock-border)] bg-[rgba(255,255,252,0.52)] p-2.5">
+          ${
+            this.#state.lastError
+              ? `<article class="rounded-[1.15rem] border border-[var(--lock-border)] bg-[var(--lock-error-bg)] p-2.5">
+                  <p class="text-[0.62rem] uppercase tracking-[0.2em] text-[var(--lock-rose)]">Last error</p>
+                  <p data-error-message class="mt-1.5 break-words text-xs leading-5 text-[var(--lock-paper)]"></p>
+                </article>`
+              : ""
+          }
+
+          <article class="lock-card rounded-[1.15rem] border border-[var(--lock-border)] p-2.5">
             <p class="text-[0.62rem] uppercase tracking-[0.2em] text-[var(--lock-dim)]">State</p>
             <div class="mt-2 flex flex-wrap gap-1.5">
               <span data-ready-self class="rounded-full border border-[var(--lock-border)] px-2 py-0.5 text-[0.64rem] text-[var(--lock-muted)]"></span>
@@ -262,7 +319,7 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
               <span data-remote-state class="rounded-full border border-[var(--lock-border)] px-2 py-0.5 text-[0.64rem] text-[var(--lock-muted)]"></span>
               ${
                 pendingAction
-                  ? `<span class="rounded-full border border-[var(--lock-border-strong)] bg-[rgba(201,149,67,0.14)] px-2 py-0.5 text-[0.64rem] text-[var(--lock-bronze-bright)]">Pending ${pendingAction}</span>`
+                  ? `<span class="rounded-full border border-[var(--lock-border-strong)] bg-[var(--lock-pending-bg)] px-2 py-0.5 text-[0.64rem] text-[var(--lock-bronze-bright)]">Pending ${pendingAction}</span>`
                   : ""
               }
             </div>
@@ -286,6 +343,8 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
       `#${this.#state.currentTurn} / ${turnLabel(this.#state.turnOwner)}`,
     );
     setText(this, "[data-detail-session]", this.#state.sessionId);
+    setText(this, "[data-detail-timeline]", timelineSummary);
+    setText(this, "[data-detail-error]", this.#state.lastError);
     setText(this, "[data-detail-peer]", this.#state.peerId || "not set");
     setText(
       this,
@@ -297,6 +356,8 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
     setText(this, "[data-detail-local-state]", localStateLabel);
     setText(this, "[data-detail-remote-state]", remoteStateLabel);
     setText(this, "[data-title]", this.#state.gameTitle);
+    setText(this, "[data-match-meta]", timelineSummary);
+    setText(this, "[data-error-message]", this.#state.lastError);
     setText(this, "[data-connection-state]", connection.detail);
     setText(this, "[data-current-turn]", `#${this.#state.currentTurn}`);
     setText(this, "[data-turn-owner]", turnLabel(this.#state.turnOwner));
@@ -316,4 +377,16 @@ export class P2PLockstepStatusPanelElement extends HTMLElement {
     setText(this, "[data-local-state]", localStateLabel);
     setText(this, "[data-remote-state]", remoteStateLabel);
   }
+
+  #handleClick = (event: Event) => {
+    const button = (event.target as HTMLElement | null)?.closest<HTMLButtonElement>(
+      "button[data-theme-mode]",
+    );
+    if (
+      button?.dataset.themeMode === "light" ||
+      button?.dataset.themeMode === "dark"
+    ) {
+      emit(this, "lockstep-theme-change", { theme: button.dataset.themeMode });
+    }
+  };
 }

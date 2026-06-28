@@ -47,7 +47,6 @@ declare module "p2p-lockstep-kit-session" {
     | "APPROVE"
     | "REJECT"
     | "GAME_OVER"
-    | "REJOIN"
     | "SYNC"
     | "SYNC_COMPLETE"
     | "OFFLINE"
@@ -138,7 +137,6 @@ declare module "p2p-lockstep-kit-session" {
       restart(): void;
       approve(): void;
       reject(): void;
-      rejoin(sid: string): void;
     };
     send(data: unknown): void;
   };

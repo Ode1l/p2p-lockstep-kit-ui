@@ -34,7 +34,7 @@ export class P2PLockstepToastMessageElement extends HTMLElement {
     this.className = "pointer-events-none fixed inset-x-4 bottom-4 z-50 flex justify-center sm:justify-end";
     this.innerHTML = `
       <div
-        class="max-w-sm rounded-full border border-[var(--lock-border-strong)] bg-[rgba(255,255,252,0.96)] px-4 py-3 text-sm font-medium text-[var(--lock-paper)] shadow-lg shadow-black/15 backdrop-blur-xl transition duration-200 ${
+        class="lock-surface-strong max-w-sm rounded-full border border-[var(--lock-border-strong)] px-4 py-3 text-sm font-medium text-[var(--lock-paper)] shadow-lg shadow-black/15 backdrop-blur-xl transition duration-200 ${
           open ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
         }"
       >

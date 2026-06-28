@@ -44,7 +44,7 @@ export class P2PLockstepSharePanelElement extends HTMLElement {
       <section class="lock-panel flex h-full flex-col justify-between gap-3 rounded-[1.4rem] p-3.5 sm:gap-4 sm:rounded-[2rem] sm:p-5">
         <div class="flex items-center justify-between gap-3">
           <p class="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[var(--lock-dim)] sm:text-[0.7rem]">Share</p>
-          <span data-share-state class="rounded-full border border-[var(--lock-border)] bg-[rgba(255,255,252,0.62)] px-2.5 py-0.5 text-[0.65rem] uppercase tracking-[0.12em] text-[var(--lock-muted)] sm:px-3 sm:py-1 sm:text-xs"></span>
+          <span data-share-state class="lock-card rounded-full border border-[var(--lock-border)] px-2.5 py-0.5 text-[0.65rem] uppercase tracking-[0.12em] text-[var(--lock-muted)] sm:px-3 sm:py-1 sm:text-xs"></span>
         </div>
 
         <div class="flex flex-1 items-center justify-center">
