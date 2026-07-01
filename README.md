@@ -46,6 +46,8 @@ import "p2p-lockstep-kit-ui/style.css";
   game-title="Gomoku"
   session-id="gomoku"
   theme="dark"
+  allow-draw
+  allow-resign
 ></p2p-lockstep-app>
 ```
 
@@ -117,10 +119,13 @@ Game runtime actions:
 
 ```ts
 runtime.actions.move(move);
+runtime.actions.offerDraw();
+runtime.actions.resign();
 ```
 
-Ready, start, undo, restart, approve, and reject are owned by the UI shell
-controls. Game packages should not drive those controls directly.
+Ready, start, undo, restart, draw approval, and resign confirmation are owned
+by the UI shell controls. `allow-draw` and `allow-resign` opt a game into the
+additional controls; game packages should normally let the shell invoke them.
 
 Runtime state:
 

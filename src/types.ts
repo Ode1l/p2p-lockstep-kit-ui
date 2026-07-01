@@ -1,5 +1,6 @@
 import type {
   GameEvent,
+  GameOutcome,
   GameStateSnapshot,
   IGamePlugin,
   PendingAction,
@@ -10,6 +11,7 @@ import type {
 
 export type {
   GameEvent,
+  GameOutcome,
   GameState,
   GameStateSnapshot,
   IGameObserver,
@@ -50,6 +52,8 @@ export type GameRuntime = {
   setGamePlugin(plugin: IGamePlugin): void;
   actions: {
     move(data: unknown): void;
+    offerDraw(): void;
+    resign(): void;
   };
   observer: {
     subscribe(observer: RuntimeObserver): () => void;
@@ -78,12 +82,17 @@ export type AppState = {
   canStart: boolean;
   canUndo: boolean;
   canRestart: boolean;
+  canOfferDraw: boolean;
+  canResign: boolean;
+  allowDraw: boolean;
+  allowResign: boolean;
   started: boolean;
   currentTurn: number;
   turnOwner: TurnOwner;
   localState: SessionStateView;
   remoteState: SessionStateView;
   pendingAction: PendingAction;
+  outcome: GameOutcome | null;
   historyLength: number;
   lastStart: PlayerLabel | null;
   lastError: string;
@@ -123,6 +132,7 @@ export type StatusPanelState = Pick<
   | "readySelf"
   | "readyPeer"
   | "pendingAction"
+  | "outcome"
   | "sessionId"
   | "historyLength"
   | "lastStart"
@@ -137,6 +147,10 @@ export type ActionBarState = Pick<
   | "canStart"
   | "canUndo"
   | "canRestart"
+  | "canOfferDraw"
+  | "canResign"
+  | "allowDraw"
+  | "allowResign"
   | "started"
   | "connectionState"
 >;
@@ -155,12 +169,17 @@ export type GamePageState = Pick<
   | "canStart"
   | "canUndo"
   | "canRestart"
+  | "canOfferDraw"
+  | "canResign"
+  | "allowDraw"
+  | "allowResign"
   | "started"
   | "currentTurn"
   | "turnOwner"
   | "localState"
   | "remoteState"
   | "pendingAction"
+  | "outcome"
   | "sessionId"
   | "historyLength"
   | "lastStart"

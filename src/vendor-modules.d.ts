@@ -44,6 +44,8 @@ declare module "p2p-lockstep-kit-session" {
     | "REMOTE_UNDO"
     | "RESTART"
     | "REMOTE_RESTART"
+    | "REQUEST"
+    | "REMOTE_REQUEST"
     | "APPROVE"
     | "REJECT"
     | "GAME_OVER"
@@ -52,8 +54,18 @@ declare module "p2p-lockstep-kit-session" {
     | "OFFLINE"
     | "ONLINE";
 
-  export type PendingAction = "undo" | "restart" | null;
+  export type PendingAction = "undo" | "restart" | "draw" | null;
   export type PlayerLabel = "local" | "remote";
+  export type GameOutcome =
+    | {
+        kind: "win";
+        winner: PlayerLabel;
+        reason: "rules" | "resignation";
+      }
+    | {
+        kind: "draw";
+        reason: "agreement" | "mutual_resignation";
+      };
 
   export type TurnEntry = {
     turn: number;
@@ -68,6 +80,7 @@ declare module "p2p-lockstep-kit-session" {
     history: TurnEntry[];
     lastStart: PlayerLabel | null;
     pendingAction: PendingAction;
+    outcome: GameOutcome | null;
     connected: boolean;
   };
 
@@ -135,6 +148,8 @@ declare module "p2p-lockstep-kit-session" {
       move(data: unknown): void;
       undo(): void;
       restart(): void;
+      offerDraw(): void;
+      resign(): void;
       approve(): void;
       reject(): void;
     };
